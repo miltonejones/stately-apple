@@ -385,7 +385,7 @@ export const useAudio = (onPlayStart) => {
 
   const { duration, currentTime, src } = state.context;
 
-  const idle = state.matches("idle");
+  // const idle = state.matches("idle");
 
   const handleSeek = (event, newValue) => {
     const percent = newValue / 100;

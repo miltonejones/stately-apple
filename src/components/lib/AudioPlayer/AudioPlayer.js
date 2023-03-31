@@ -8,7 +8,7 @@ const Layout = styled(Box)(({ theme }) => ({
 
  const Player = styled(Card)(({ open, theme }) => ({
    position: 'fixed',
-   bottom:  open ? 40 : -400,
+   bottom:  open ? 'var(--bottom-bar-offset)' : -400,
    transition: "bottom 0.2s linear",
    height: 116,
    width: '100vw',
@@ -22,15 +22,15 @@ const AudioPlayer = ({ handler }) => {
   <Player anchor="bottom" open={handler.state.matches('opened')}>
     
    <Layout data-testid="test-for-AudioPlayer">
-    <Columns spacing={2} columns="100px 300px 40px 1fr 400px">
+    <Columns spacing={2} columns="100px 300px 80px 1fr 400px">
     <Avatar sx={{ width: 100, height: 100 }} src={handler.artworkUrl100} alt={handler.trackName} />
       <Stack>
         <Nowrap>{handler.trackName}</Nowrap>
         <Nowrap small muted>{handler.collectionName}</Nowrap>
         <Nowrap small muted>{handler.artistName}</Nowrap>
       </Stack>
-      <IconButton onClick={() => handler.send('PAUSE')}>
-        <TextIcon icon={paused ? "PlayCircle" : "PauseCircle"} />
+      <IconButton color="primary" onClick={() => handler.send('PAUSE')}>
+        <TextIcon sx={{ width: 40, height: 40 }} icon={paused ? "PlayCircle" : "PauseCircle"} />
       </IconButton>
       <Stack>
         <LinearProgress value={handler.progress} variant={!handler.progress ? "indeterminate" : "determinate"} />

@@ -1,3 +1,4 @@
+import IconTextField from './IconTextField';
 import Spacer from './Spacer';
 import TextIcon from './TextIcon';
 import Flex from './Flex';
@@ -6,6 +7,7 @@ import Nowrap from './Nowrap';
  
 
 export {
+  IconTextField,
   Spacer,
   TextIcon,
   Flex,
