@@ -28,7 +28,9 @@ function App() {
         {/* <Nowrap small muted>Machines</Nowrap> */}
       </Flex>
 
-      <Nowrap small hover muted> Powered by the <b>iTunes Search API</b></Nowrap>
+      <Nowrap small hover muted
+        onClick={() => window.open("https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/index.html")}
+      > Powered by the <b>iTunes Search API</b></Nowrap>
 
       <Flex spacing={1}>
         <TextIcon icon="Apple" />

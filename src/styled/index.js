@@ -1,3 +1,4 @@
+import Pill from './Pill';
 import IconTextField from './IconTextField';
 import Spacer from './Spacer';
 import TextIcon from './TextIcon';
@@ -7,6 +8,7 @@ import Nowrap from './Nowrap';
  
 
 export {
+  Pill,
   IconTextField,
   Spacer,
   TextIcon,

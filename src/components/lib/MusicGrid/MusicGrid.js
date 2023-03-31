@@ -1,9 +1,10 @@
 import React from 'react';
-import { styled, Card, Collapse, Stack, Box } from '@mui/material';
-import { Nowrap, Columns } from '../../../styled';
+import { styled, Card, Pagination, Collapse, Stack, Box } from '@mui/material';
+import { Nowrap, Flex, Columns } from '../../../styled';
+import { getPagination } from '../../../util/getPagination';
  
 const Layout = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(2,2,24,2)
+  padding: theme.spacing(0,2,24,2)
  }));
  
 const Frame = styled(Card)(({ theme }) => ({
@@ -17,14 +18,35 @@ const MusicGrid = ({ handler, audio }) => {
   const columns = "1fr 1fr 1fr 1fr 1fr";
   const maxWidth = 240;
   const isIdle = handler.state.matches("idle");
+  const pages = getPagination(results, {
+    page: handler.page,
+    pageSize: 20
+  });
+
+  
  return (
   <Collapse in={!isIdle}>
+      {pages.pageCount > 1 && (
+    <Flex sx={{ p: t => t.spacing(0, 3) }} spacing={2}>
+      <Pagination
+        count={Number(pages.pageCount)}
+        page={Number(handler.page)}
+        onChange={(a, b) => handler.setProp({target: {
+          name: 'page',
+          value: b
+        }})}
+      />
+      <Nowrap small muted>{pages.startNum} to {pages.lastNum} of {pages.itemCount} results</Nowrap>
+    </Flex>
+
+      )}
+
    <Layout data-testid="test-for-MusicGrid">
    
    {!!results.length && (
           <Card sx={{ m: 2, maxWidth: '100vw', pb: 26, height: 'calc(100vh - 124px)', overflow: 'auto' }}>
          <Columns sx={{m: 1}} spacing={1} columns={columns}>
-          {!!results && results.map(res => (
+          {!!results && pages.visible.map(res => (
             <Frame 
                 elevation={audio.src === res.previewUrl && audio.state.matches('opened') ? "4" : "1"}
                 sx={{ outline: t => audio.src === res.previewUrl && audio.state.matches('opened') ? `solid 2px ${t.palette.primary.main}` : `` }}

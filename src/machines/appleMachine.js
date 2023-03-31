@@ -50,7 +50,7 @@ const appleMachine = createMachine({
     },
   },
   context: {
-    param: "",
+    param: "", entity: 'all', page: 1
   },
   predictableActionArguments: true,
   preserveActionOrder: true,
@@ -65,10 +65,13 @@ const appleMachine = createMachine({
       stack: event.data.stack
     })),
     assignResults: assign((_, event) => ({
-      results: event.data
+      results: event.data,
+      page: 1
     })),
     clearResults: assign(({
-      results: null
+      results: null,
+      entity: 'all',
+      param: "",
     })),
   }
 });
@@ -77,7 +80,7 @@ export const useApple = () => {
   const [state, send] = useMachine(appleMachine, {
     services: {
       initSearch: async(context) => {
-        return api.findMusic(context.param)
+        return api.findMusic(context.param, context.entity);
       }
      },
   }); 

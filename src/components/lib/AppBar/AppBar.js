@@ -1,6 +1,7 @@
 import React from 'react';
-import { styled, Stack, Box, LinearProgress } from '@mui/material';
+import { styled, Stack, LinearProgress } from '@mui/material';
 import { Nowrap, Flex, Spacer, IconTextField, TextIcon } from '../../../styled';
+import MediaMenu from '../MediaMenu/MediaMenu';
  
 
 
@@ -10,13 +11,10 @@ const Layout = styled(({ ...props }) => (
   backgroundColor: theme.palette.common.white//isIdle ? theme.palette.common.white : theme.palette.grey[200]
 }));
 
-
-// const Layout = styled(Stack)(({ isIdle, theme }) => ({
-//   backgroundColor: isIdle ? theme.palette.common.white : theme.palette.grey[200]
-// }));
+ 
  
 const AppBar = ({ handler }) => {
-  const colors = ['error', 'success', 'warning', 'info'];
+  const colors = ['info', 'error', 'success', 'warning'];
   const isIdle = handler.state.matches("idle");
   const isBusy = handler.state.matches("search.lookup");
  return (
@@ -67,34 +65,12 @@ const AppBar = ({ handler }) => {
                 />}
 
             />
-            {/* <Button
-              disabled={!handler.param}
-              variant="contained"
-            
-            >search</Button> */}
+ 
           </Flex>
       </form>
 
-         {isIdle && <Flex between spacing={1} sx={{p:1}}>
-            {Object.keys(entities).map(e => <Box
-            onClick={() => {
-              handler.setProp({ target: {
-                name: 'entity',
-                value: e
-              }})
-            }}
-              sx={{
-                backgroundColor: t => e === handler.entity ? t.palette.primary.main : t.palette.grey[200],
-              
-                p: t => t.spacing(0.25, 1),
-                borderRadius: 1
-              }}
-            >
-              <Nowrap hover bold={e === handler.entity} 
-              sx={{   color: t => e === handler.entity ? t.palette.common.white : t.palette.text.secondary, }}
-              muted tiny>{entities[e]}</Nowrap>
-            </Box>)}
-          </Flex>}
+      <MediaMenu handler={handler} />
+ 
 
           
 
@@ -104,15 +80,4 @@ const AppBar = ({ handler }) => {
 }
 AppBar.defaultProps = {};
 export default AppBar;
-
-const entities = {
-  movie: "Movie",
-  podcast: "Podcast",
-  music: "Music",
-  musicVideo: "Music Video",
-  audiobook: "Audio Book",
-  // shortFilm: "Short  Film",
-  tvShow: "TV",
-  software: "Software",
-  ebook: "eBook"
-}
+ 
