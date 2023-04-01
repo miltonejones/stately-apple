@@ -13,6 +13,14 @@
   justify-content: center;
 }
 
+sup {
+  background-color: red;
+  padding: 4px;
+  font-size: .7rem;
+  font-weight: 900;
+  color: white;
+}
+
 body {
   background-color: #ebebeb;
   margin: 0;

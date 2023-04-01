@@ -4,7 +4,7 @@ import { Flex, Nowrap, Pill } from '../../../styled';
   
  
 const MediaMenu = ({ handler }) => {
-  const isIdle = handler.state.matches("idle");
+  const { isIdle } = handler;
   if (!isIdle) {
     return <Flex sx={{p:1}}>
       <TextField

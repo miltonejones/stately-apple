@@ -3,15 +3,13 @@
 import { styled, Typography } from '@mui/material';
 //  import { blue } from '@mui/material/colors';
 
-const Nowrap = styled(Typography)(( { theme, selected, color, width, muted, cap, tiny, small, thin, border, bold = false, hover } ) => {
+const Nowrap = styled(Typography)(( { theme, selected, color, width, wrap, muted, cap, tiny, small, thin, border, bold = false, hover } ) => {
   const obj = {
     cursor:  hover ? "pointer" : 'default',
     fontWeight:  bold ? 600 : 400,
     // backgroundColor: odd ? blue[50] : theme.palette.common.white,
     padding: selected ? theme.spacing(0.5) : 0,
-    whiteSpace: 'nowrap',
-    overflowX: 'hidden',
-    textOverflow: 'ellipsis',
+
     backgroundColor: selected ? theme.palette.primary.light : null ,
     width:  width || '',
     color: selected ? theme.palette.primary.dark : (muted ? theme.palette.text.secondary : null) ,
@@ -19,6 +17,13 @@ const Nowrap = styled(Typography)(( { theme, selected, color, width, muted, cap,
       textDecoration: hover ? 'underline' : 'none'
     }
   };
+  if (!wrap) {
+    Object.assign(obj, {
+      whiteSpace: 'nowrap',
+      overflowX: 'hidden',
+      textOverflow: 'ellipsis',
+    })
+  }
   if (tiny) {
     Object.assign(obj, {
       fontSize: '0.75rem'

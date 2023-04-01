@@ -3,6 +3,7 @@ import { createMachine, assign } from 'xstate';
 import { useMachine } from "@xstate/react";
 import moment from "moment";
 import { AudioConnector, frameLooper } from "./eq";
+import { shuffle } from "../util/shuffle";
 
 // add machine code
 const audioMachine = createMachine(
@@ -162,17 +163,19 @@ const audioMachine = createMachine(
                 target: "#audio_player.replay",
                 actions: ["assignSourceToContext"],
               },
-              END: {
-                target: "#audio_player.idle.loaded",
-                // actions: "assignNextTrackToContext",
+              MOVE: {
+                target: "#audio_player.replay",
+                actions: "assignMovedTrackToContext"
+              },
+              END: { 
+                target: "#audio_player.replay",
+               actions: "assignNextTrackToContext",
               },
               QUEUE: {
                 actions: "addToQueue",
               },
               TOGGLE: {
-                actions: assign((context, event) => ({
-                  [event.key]: !context[event.key],
-                })),
+                actions: "toggleProp",
               }, 
               SOUND: {
                 actions: "assignVolume",
@@ -205,6 +208,9 @@ const audioMachine = createMachine(
   },
   {
     actions: { 
+      toggleProp: assign((context, event) => ({
+          [event.key]: !context[event.key],
+        })),
       initQueue: assign((context, event) => { 
         const { track } = event ;
         persistTrack(track); 
@@ -298,14 +304,26 @@ const audioMachine = createMachine(
           memory: getPersistedTracks()
         };
       }),
-      assignNextTrackToContext: assign((context, event) => {
+      assignMovedTrackToContext: assign((context, event) => {
         const index =
-          context.trackList.map((f) => f.src).indexOf(context.src) + 1;
-        const track = context.trackList[index];
+          context.trackList.map((f) => f.previewUrl).indexOf(context.src) + event.index;
+        const track = context.trackList[index]; 
         persistTrack(track);
         return {
           ...track, 
-          src: track.src,
+          src: track.previewUrl,
+          scrolling: track.Title?.length > 35,
+        };
+      }),
+      assignNextTrackToContext: assign((context, event) => {
+        const index =
+          context.trackList.map((f) => f.previewUrl).indexOf(context.src) + 1;
+        const items = !context.shuffle ? context.trackList : shuffle(context.trackList)
+        const track = items[index];
+        persistTrack(track);
+        return {
+          ...track, 
+          src: track.previewUrl,
           scrolling: track.Title?.length > 35,
         };
       }),
@@ -443,6 +461,12 @@ export const useAudio = (onPlayStart) => {
       key: "debug",
     });
 
+    const diagnosticProps = {
+      ...audioMachine,
+      state,
+      send,
+    };
+  
   return {
     state,
     send, 
@@ -453,6 +477,7 @@ export const useAudio = (onPlayStart) => {
     handlePlay,
     handleList,
     handleEq,
+    diagnosticProps,
     ...state.context
   };
 }
