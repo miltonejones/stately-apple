@@ -13,3 +13,6 @@ export const lookupMusic = async (id, entity) => {
 };
 
 
+// entity=allArtist&attribute=allArtistTerm. 
+// entity=album&attribute=albumTerm. 
+

@@ -10,6 +10,17 @@
       "StackName": "amplify-statelyapple-dev-193052",
       "StackId": "arn:aws:cloudformation:us-east-1:123823813021:stack/amplify-statelyapple-dev-193052/4d746280-cf5b-11ed-9225-0e35336a373f",
       "AmplifyAppId": "d26g5bn047cklk"
+    },
+    "categories": {
+      "hosting": {
+        "amplifyhosting": {
+          "appId": "d26g5bn047cklk",
+          "type": "cicd"
+        }
+      },
+      "auth": {
+        "statelyapple5b090c0b": {}
+      }
     }
   }
 }

@@ -18,16 +18,28 @@ const Layout = styled(({ ...props }) => (
   marginBottom: theme.spacing(1),
 }));
 
-const AppBar = ({ handler }) => {
+const AppBar = ({ handler, tube }) => {
   const colors = ['info', 'error', 'success', 'warning'];
   const { isIdle } = handler;
   const isBusy = ['search.lookup', 'search.list.entity'].some(handler.state.matches);
   const isListening = handler.state.matches('transcribe.listening');
+  const handleBrowse = () => {
+            tube.send({
+              type: 'CHANGE',
+              key: 'browse',
+              value: !tube.browse
+            })
+          };
   return (
     <>
       {isBusy && <LinearProgress />}
       <Layout isIdle={isIdle} data-testid="test-for-AppBar">
         <Flex spacing={isIdle ? 0.5 : 0} sx={{ p: 1 }}>
+
+          {!isIdle && <IconButton  onClick={handleBrowse}>
+              <TextIcon icon="Menu" />
+            </IconButton>}
+
           <TextIcon
             color="success"
             sx={
@@ -77,14 +89,15 @@ const AppBar = ({ handler }) => {
               helperText={
                 isListening ? (
                   <>
-                    Click the <TinyButton icon="MicOff" /> button when done
-                    speaking
+                    Click the <TinyButton icon="MicOff" /> to cancel.
                   </>
                 ) : (
                   ''
                 )
               }
-              startIcon={<TextIcon icon="MusicNote" />}
+              startIcon={<IconButton onClick={handleBrowse}>
+                <TextIcon icon={isIdle && !!tube.pins?.length ? "Menu" : "MusicNote"} />
+              </IconButton>}
               endIcon={
                 <Flex spacing={1}>
                   <IconButton>

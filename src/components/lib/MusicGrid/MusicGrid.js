@@ -11,6 +11,7 @@ import {
   Box,
   Badge,
   Breadcrumbs, 
+  CircularProgress
 } from '@mui/material';
 import {
   Nowrap,
@@ -20,6 +21,7 @@ import {
   Pill,
   TinyButtonGroup,
   Columns,
+  ConfirmPop
   // TextIcon
 } from '../../../styled';
 import { useMenu } from '../../../machines';
@@ -207,7 +209,7 @@ const MusicGrid = ({ handler, tube, audio }) => {
               m: 2,
               maxWidth: '100vw', 
               transition: 'height 0.2s linear',
-              height: `calc(100vh - ${isOpen ? "300px" : "220px"})`,
+              height: `calc(100vh - ${isOpen ? "300px" : "180px"})`,
               overflow: 'auto',
             }}
           >
@@ -276,7 +278,7 @@ const GridView = ({ pages, handleLookup, audio, tube }) => {
                <Badge  sx={{ '& .MuiBadge-badge': { borderRadius: 1 }}} badgeContent={res.trackExplicitness === 'explicit' ? "E" : 0} color="error">
                 
                 <Nowrap
-                color={tube.contains(res) ? "primary" : "inherit"}
+                color={tube.contains(res) ? "error" : "inherit"}
                   bold={
                     audio.src === res.previewUrl &&
                     audio.state.matches('opened.playing')
@@ -320,12 +322,35 @@ const GridView = ({ pages, handleLookup, audio, tube }) => {
 };
 
 const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => {
+
+ 
+  const handleBatch = () => {
+    
+    const batch = pages.items?.map(item => ({
+      ...item,
+      param: `${item.trackName} ${item.artistName}`
+    }));
+
+    tube.send({
+      type: 'BATCH',
+      batch
+    })
+  }
+
+
+
   const columns = '40px 24px 24px 1fr 1fr 1fr 1fr';
   return (
     <>
       <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
         <Box />
-        <Flex />
+        
+       {!tube.batch && <ConfirmPop
+       onChange={ok => !!ok && handleBatch()}
+        message={`Add ${pages.items.length} items from  YouTube to your library?`}
+        label="Save items to local storage" 
+        ><TinyButton icon="YouTube" /></ConfirmPop>}
+      {!!tube.batch && <CircularProgress size={18} />}
         {Object.keys(headers).map((key) => (
           <Flex spacing={1}>
             <Nowrap
@@ -355,15 +380,15 @@ const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => 
           <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
             <Avatar src={res.artworkUrl100} alt={res.trackName} />
 
+            <TubeMenu tube={tube} track={res} />
+
             <TinyButton icon={ audio.src === res.previewUrl &&
                 audio.state.matches('opened.playing') 
                 ? "VolumeUp" 
                 : wrapperTypes[ res.wrapperType ]} />
             
-            <TubeMenu tube={tube} track={res} />
-
             <Nowrap
-              color={tube.contains(res) ? "primary" : "inherit"}
+              color={tube.contains(res) ? "error" : "inherit"}
               bold={
                 audio.src === res.previewUrl &&
                 audio.state.matches('opened.playing')

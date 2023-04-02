@@ -1,3 +1,5 @@
+import ConfirmPop from './ConfirmPop';
+import Btn from './Btn';
 import TinyButtonGroup from './TinyButtonGroup';
 import RotateButton from './RotateButton';
 import TinyButton from './TinyButton';
@@ -11,6 +13,8 @@ import Nowrap from './Nowrap';
  
 
 export {
+  ConfirmPop,
+  Btn,
   TinyButtonGroup,
   RotateButton,
   TinyButton,

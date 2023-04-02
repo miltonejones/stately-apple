@@ -8,6 +8,7 @@
  } 
 
 .App.centered {
+  height: calc(100vh - var(--bottom-bar-offset) - var(--top-bar-offset));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,6 +27,7 @@ body {
   margin: 0;
   overflow: hidden;
   --bottom-bar-offset: 48px;
+  --top-bar-offset: 72px;
 }
 
 .App-logo {
