@@ -1,6 +1,6 @@
 import React from 'react';
 import { styled, IconButton, Stack, Drawer, Box } from '@mui/material';
-import { useApple, useAudio, useMenu } from '../../../machines';
+import { useApple, useAudio, useTube, useMenu } from '../../../machines';
 import {
   Nowrap, 
   Flex,
@@ -102,7 +102,8 @@ const AboutModal = () => {
   const apple = useApple();
   const audio = useAudio();
   const menu = useMenu();
-  const machines = [apple, audio, menu];
+  const tube = useTube();
+  const machines = [apple, audio, tube, menu];
  
   const selectedMachine = machines.find(f => f.diagnosticProps.id === menu.selectedMachine)
   const selectMachine = value => {

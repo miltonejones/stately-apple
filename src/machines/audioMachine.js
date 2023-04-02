@@ -11,6 +11,8 @@ const audioMachine = createMachine(
     id: "audio_player",
     initial: "begin",
     context: {
+      shuffle: false,
+      repeat: true,
       image:
         "https://is5-ssl.mzstatic.com/image/thumb/Podcasts116/v4/e4/a3/c6/e4a3c61d-7195-9431-f6a9-cf192f9c803e/mza_4615863570753709983.jpg/100x100bb.jpg",
       title: "This is the selected podcast title",
@@ -167,10 +169,19 @@ const audioMachine = createMachine(
                 target: "#audio_player.replay",
                 actions: "assignMovedTrackToContext"
               },
-              END: { 
-                target: "#audio_player.replay",
-               actions: "assignNextTrackToContext",
-              },
+              END:[ 
+                { 
+                  target: "#audio_player.replay",
+                  actions: "assignNextTrackToContext",
+                  cond: "moreTracks"
+                },
+                { 
+                  target: "#audio_player.idle",
+                  actions: "clearPlayer" 
+                }
+            
+              ]
+              ,
               QUEUE: {
                 actions: "addToQueue",
               },
@@ -207,6 +218,14 @@ const audioMachine = createMachine(
     },
   },
   {
+    guards: {
+      moreRetries:  (context) => context.retries < 4,
+      moreTracks: (context) => { 
+        const index =
+          context.trackList.map((f) => f.previewUrl).indexOf(context.src) ;
+          return !!context.repeat && index < (context.trackList.length - 1);
+      }
+    },
     actions: { 
       toggleProp: assign((context, event) => ({
           [event.key]: !context[event.key],

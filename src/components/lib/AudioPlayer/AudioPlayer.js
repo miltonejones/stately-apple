@@ -1,5 +1,5 @@
 import React from 'react';
-import { styled, Card, Avatar, Drawer, Stack, IconButton, LinearProgress, Box } from '@mui/material';
+import { styled, Card, Avatar, Drawer, Switch, Stack, IconButton, LinearProgress, Box } from '@mui/material';
 import { Nowrap, Columns, Flex, Spacer, TextIcon } from '../../../styled';
 import { useMenu } from '../../../machines';
  
@@ -10,7 +10,7 @@ const Layout = styled(Box)(({ theme }) => ({
  const Player = styled(Card)(({ open, theme }) => ({
    position: 'fixed',
    bottom:  open ? 'var(--bottom-bar-offset)' : -400,
-   transition: "bottom 0.2s linear",
+   transition: "all 0.2s linear",
    height: 116,
    width: '100vw',
    backgroundColor: 'white'
@@ -95,6 +95,13 @@ const AudioPlayer = ({ handler }) => {
         <Nowrap>{handler.trackName}</Nowrap>
         <Nowrap small muted>{handler.collectionName}</Nowrap>
         <Nowrap small muted>{handler.artistName}</Nowrap>
+        <Flex onClick={() => handler.send({
+            type: 'TOGGLE',
+            key: 'repeat'
+          })}>
+            <Switch size="small" checked={handler.repeat} />
+            {/* <TinyButton icon={handler.repeat ? "ReplayCircleFilled" : "Replay"}/>  */}
+          <Nowrap small muted bold={handler.repeat} hover>Continuous Play</Nowrap></Flex>
       </Stack>
 
 

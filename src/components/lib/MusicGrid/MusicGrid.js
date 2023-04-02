@@ -24,6 +24,7 @@ import {
 } from '../../../styled';
 import { useMenu } from '../../../machines';
 import { getPagination } from '../../../util/getPagination';
+import TubeMenu from '../TubeMenu/TubeMenu';
 
 const Layout = styled(Box)(({ theme }) => ({
   padding: theme.spacing(0, 2, 24, 2),
@@ -102,7 +103,7 @@ const SortMenu = ({ handler, handleSort, onChange }) => {
   );
 };
 
-const MusicGrid = ({ handler, audio }) => {
+const MusicGrid = ({ handler, tube, audio }) => {
   const { results = [] } = handler.results || {};
   const { isIdle } = handler;
   const isOpen = audio.state.matches('opened');
@@ -148,7 +149,7 @@ const MusicGrid = ({ handler, audio }) => {
   return (
     <Collapse in={!isIdle}>
       {!!results.length && (
-        <Flex sx={{ p: (t) => t.spacing(0, 3) }} spacing={2}>
+        <Flex sx={{ p: (t) => t.spacing(0, 4) }} spacing={2}>
 
 
           {!!handler.lookupType && !!songNode && <Flex spacing={1}>
@@ -214,6 +215,7 @@ const MusicGrid = ({ handler, audio }) => {
               <View
                 pages={pages}
                 audio={audio}
+                tube={tube}
                 handleSort={handleSort}
                 handleLookup={handleLookup}
                 handler={handler}
@@ -232,7 +234,7 @@ const MusicGrid = ({ handler, audio }) => {
 MusicGrid.defaultProps = {};
 export default MusicGrid;
 
-const GridView = ({ pages, handleLookup, audio }) => {
+const GridView = ({ pages, handleLookup, audio, tube }) => {
   const columns = '1fr 1fr 1fr 1fr 1fr';
   const maxWidth = 240;
   return (
@@ -271,15 +273,24 @@ const GridView = ({ pages, handleLookup, audio }) => {
             <Stack sx={{ p: 1 }}>
               <Flex>
                 {/* {res.trackExplicitness === 'explicit' && <Pill>e</Pill>} */}
-               <Badge  sx={{ '& .MuiBadge-badge': { borderRadius: 1 }}} badgeContent={res.trackExplicitness === 'explicit' ? "E" : 0} color="error"><Nowrap
+               <Badge  sx={{ '& .MuiBadge-badge': { borderRadius: 1 }}} badgeContent={res.trackExplicitness === 'explicit' ? "E" : 0} color="error">
+                
+                <Nowrap
+                color={tube.contains(res) ? "primary" : "inherit"}
                   bold={
                     audio.src === res.previewUrl &&
                     audio.state.matches('opened.playing')
                   }
                   sx={{ maxWidth }}
                 >
-                  {res.trackName || res.collectionName}
-                </Nowrap></Badge> 
+                  {res.trackName || res.collectionName} 
+                </Nowrap>
+                
+                </Badge> 
+
+                <Spacer />
+
+                <TubeMenu  tube={tube} track={res} />
               </Flex>
 
               <Nowrap
@@ -308,12 +319,13 @@ const GridView = ({ pages, handleLookup, audio }) => {
   );
 };
 
-const ListView = ({ pages, audio, handleSort, handleLookup, handler }) => {
-  const columns = '40px 24px 1fr 1fr 1fr 1fr';
+const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => {
+  const columns = '40px 24px 24px 1fr 1fr 1fr 1fr';
   return (
     <>
       <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
         <Box />
+        <Flex />
         {Object.keys(headers).map((key) => (
           <Flex spacing={1}>
             <Nowrap
@@ -348,7 +360,10 @@ const ListView = ({ pages, audio, handleSort, handleLookup, handler }) => {
                 ? "VolumeUp" 
                 : wrapperTypes[ res.wrapperType ]} />
             
+            <TubeMenu tube={tube} track={res} />
+
             <Nowrap
+              color={tube.contains(res) ? "primary" : "inherit"}
               bold={
                 audio.src === res.previewUrl &&
                 audio.state.matches('opened.playing')
@@ -381,6 +396,7 @@ const ListView = ({ pages, audio, handleSort, handleLookup, handler }) => {
             <Nowrap hover
               onClick={() => window.open(res.trackViewUrl)}
             >{res.trackPrice || res.formattedPrice}</Nowrap>
+
           </Columns>
         ))}
     </>

@@ -97,12 +97,14 @@ const menuMachine = createMachine({
     assignClose: assign((_, event) => ({
       anchorEl: null,
       value: event.value,
-      data: null
+      data: null,
+      open: false
     })),
     assignOpen: assign((_, event) => ({
       dirty: false,
       anchorEl: event.anchorEl,
-      data: event.data
+      data: event.data,
+      open: true
     })),
     applyChanges: assign((context, event) => ({
       dirty: 1,

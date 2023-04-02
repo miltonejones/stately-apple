@@ -1,24 +1,34 @@
 import './App.css';
-import { useApple, useAudio } from './machines';
+import { useApple, useTube, useMenu, useAudio } from './machines';
 import { Flex, TextIcon, Nowrap } from './styled';
 
 import AudioPlayer from './components/lib/AudioPlayer/AudioPlayer';
 import MusicGrid from './components/lib/MusicGrid/MusicGrid';
 import AppBar from './components/lib/AppBar/AppBar';
 import AboutModal from './components/lib/AboutModal/AboutModal';
+import TubeDrawer from './components/lib/TubeDrawer/TubeDrawer';
 
 function App() {
+  const tubeMenu = useMenu(
+    val => val === -1 && tube.send('CLEAR')
+  );
+  const tube = useTube(
+    (res) =>  {
+      tubeMenu.handleClick(false, res)
+    }
+  );
   const apple = useApple();
-  const audio = useAudio();
+  const audio = useAudio(); 
 
   return (
     <>
       <div className={apple.isIdle ? 'App centered' : 'App'}>
         <AppBar handler={apple} />
-        {apple.state.matches('search') && <MusicGrid handler={apple} audio={audio} />}
+        {apple.state.matches('search') && <MusicGrid tube={tube} handler={apple} audio={audio} />}
         <AudioPlayer handler={audio} />
       </div>
 
+<TubeDrawer menu={tubeMenu} tube={tube} />
       
 
       <Flex
@@ -27,14 +37,21 @@ function App() {
         spacing={1}
       >
         <Flex spacing={2} small muted>
-          {/* <Nowrap small muted>
-            About Boombot
-          </Nowrap> */}
+       
           <AboutModal />
-          <Nowrap small muted>
+          <Nowrap 
+            small
+            hover
+            muted
+            onClick={() =>
+              window.open(
+                'https://github.com/miltonejones/stately-apple'
+              )
+            }
+           >
             Github Repo
           </Nowrap>
-          {/* <Nowrap small muted>Machines</Nowrap> */}
+        
         </Flex>
 
         <Nowrap
