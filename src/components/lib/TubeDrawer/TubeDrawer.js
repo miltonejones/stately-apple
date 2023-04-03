@@ -114,7 +114,7 @@ const PlayList = ({ tube, pinnedItem }) => {
         </Flex>
 
         <Divider />
-        <Columns columns="1fr 1fr 1fr 1fr 1fr" sx={{ p: 2, minWidth: 400}}>
+        <Columns columns="1fr 1fr 1fr 1fr 1fr" sx={{ p: 2, alignItems: 'center', minWidth: 400}}>
           {listNames.map(name => <Nowrap
             hover
             onClick={menu.handleClose(name)}

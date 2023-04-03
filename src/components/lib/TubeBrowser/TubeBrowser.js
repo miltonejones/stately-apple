@@ -66,10 +66,12 @@ const TubeBrowser = ({ handler }) => {
   const groupKeys = Object.keys(handler.groups);
   const diskUsed = JSON.stringify(handler.pins).length;
   // const notExpanded =!handler.expanded || !Object.values(handler.expanded).find(value => !!value)
+
+ 
   return (
     <Drawer anchor="left" onClose={handleClose} open={handler.browse}>
       {/* {JSON.stringify(handler.expanded)} */}
-    
+    {!handler.state.can('FIND') && <>The librarian is busy right now. Try again later.</>}
       <Flex
         spacing={1}
         sx={{ 
@@ -127,7 +129,8 @@ const TubeBrowser = ({ handler }) => {
                     in={handler.expanded && handler.expanded[`${key}/${cat}`]}
                   >
                     {/* collection tracks */}
-                    {handler.groups[key][cat]
+                    {handler.expanded && handler.expanded[`${key}/${cat}`] && 
+                    handler.groups[key][cat]
                     .sort(sorter('trackNumber'))
                     .map((item) => (
                       <CollectionItem group={handler.groups[key][cat]} handler={handler} item={item} handlePlay={handlePlay} selectedItem={selectedItem} 

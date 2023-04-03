@@ -10,7 +10,8 @@ import {
   Stack,
   Box, 
   Breadcrumbs, 
-  CircularProgress
+  CircularProgress,
+  Switch
 } from '@mui/material';
 import {
   Nowrap,
@@ -329,9 +330,12 @@ const GridView = ({ pages, handleLookup, audio, tube }) => {
 const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => {
 
  
+  const columns = handler.selectMode ? "40px 40px 24px 24px 1fr 1fr 1fr 1fr" : '40px 24px 24px 1fr 1fr 1fr 1fr';
+  const downloadableItems = pages.items?.filter(item => !(handler.excludedItems && handler.excludedItems[item.previewUrl]));
+
   const handleBatch = () => {
     
-    const batch = pages.items?.map(item => ({
+    const batch = downloadableItems?.map(item => ({
       ...item,
       param: `${item.trackName} ${item.artistName}`
     }));
@@ -342,20 +346,43 @@ const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => 
     })
   }
 
+  const handleSelectMode = () => {
+    handler.setProp({
+      target: {
+        name: "selectMode",
+        value: !handler.selectMode
+      }
+    })
+  }
+
+  const handleExclude = (id) => {
+    handler.setProp({
+      target: {
+        name: "excludedItems",
+        value: {
+          ...handler.excludedItems,
+          [id]: !(handler.excludedItems && handler.excludedItems[id])
+        }
+      }
+    })
+  }
 
 
-  const columns = '40px 24px 24px 1fr 1fr 1fr 1fr';
+
   return (
     <>
       <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
-        <Box />
+        {!!handler.selectMode && <Box />}
+        <Switch checked={handler.selectMode} onClick={handleSelectMode} size="small" />
         
+
        {!tube.batch && <ConfirmPop
        onChange={ok => !!ok && handleBatch()}
-        message={`Add ${pages.items.length} items from  YouTube to your library?`}
+        message={`Add ${downloadableItems.length} items from  YouTube to your library?`}
         label="Save items to local storage" 
         ><Tooltag component={TinyButton} title="Find all on YouTube" icon="YouTube" /></ConfirmPop>}
       {!!tube.batch && <CircularProgress size={18} />}
+
         {Object.keys(headers).map((key) => (
           <Flex spacing={1}>
             <Nowrap
@@ -384,6 +411,11 @@ const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => 
         pages.visible.map((res) => (
           <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
             <Avatar src={res.artworkUrl100} alt={res.trackName} />
+
+           {!!handler.selectMode && <Switch
+            checked={!(handler.excludedItems && handler.excludedItems[res.previewUrl])}
+            onClick={() => handleExclude(res.previewUrl)}
+            size="small" />}
 
             <TubeMenu items={pages.items} tube={tube} track={res} />
 

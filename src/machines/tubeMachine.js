@@ -45,11 +45,13 @@ const tubeMachine = createMachine(
                 {
                   target: "collate",
                   actions: "applyPins",
+                  description: "Assign downloaded tracks to context.",
                 },
               ],
             },
           },
           collate: {
+            description: "Organize flat list into categories for the UI",
             entry: "initPins",
           },
         },
