@@ -1,5 +1,5 @@
 import React from 'react';
-import { styled, Stack, IconButton, LinearProgress } from '@mui/material';
+import { Badge,styled, Stack, IconButton, LinearProgress } from '@mui/material';
 import {
   Nowrap,
   Flex,
@@ -7,6 +7,7 @@ import {
   TinyButton,
   IconTextField,
   TextIcon,
+  
 } from '../../../styled';
 import MediaMenu from '../MediaMenu/MediaMenu';
 
@@ -36,9 +37,9 @@ const AppBar = ({ handler, tube }) => {
       <Layout isIdle={isIdle} data-testid="test-for-AppBar">
         <Flex spacing={isIdle ? 0.5 : 0} sx={{ p: 1 }}>
 
-          {!isIdle && <IconButton  onClick={handleBrowse}>
+          {!isIdle && <Badge max={1000} color="success" badgeContent={tube.pins?.length}><IconButton  onClick={handleBrowse}>
               <TextIcon icon="Menu" />
-            </IconButton>}
+            </IconButton></Badge>}
 
           <TextIcon
             color="success"
@@ -95,8 +96,8 @@ const AppBar = ({ handler, tube }) => {
                   ''
                 )
               }
-              startIcon={<IconButton onClick={handleBrowse}>
-                <TextIcon icon={isIdle && !!tube.pins?.length ? "Menu" : "MusicNote"} />
+              startIcon={<IconButton>
+                <TextIcon icon={"MusicNote"} />
               </IconButton>}
               endIcon={
                 <Flex spacing={1}>

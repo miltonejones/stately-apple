@@ -62,8 +62,10 @@ const TubeBrowser = ({ handler }) => {
   };
 
   const groupKeys = Object.keys(handler.groups);
+  // const notExpanded =!handler.expanded || !Object.values(handler.expanded).find(value => !!value)
   return (
     <Drawer anchor="left" onClose={handleClose} open={handler.browse}>
+      {/* {JSON.stringify(handler.expanded)} */}
       <Flex
         spacing={1}
         sx={{
@@ -81,7 +83,8 @@ const TubeBrowser = ({ handler }) => {
         </IconButton>
       </Flex>
       <Layout data-testid="test-for-TubeBrowser">
-        {groupKeys.map((key) => (
+        {groupKeys 
+        .map((key) => (
           <Stack>
 
 

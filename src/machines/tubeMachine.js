@@ -172,6 +172,19 @@ const tubeMachine = createMachine({
     },
 
     
+    signout: {
+      description: 'Sign out and remove user',
+      invoke: {
+        src: 'userSignOut',
+        onDone: [
+          {
+            target: 'idle',
+            actions: 'removeUser',
+            description: 'Remove user from context',
+          },
+        ],
+      },
+    },
     dynamo: {
       description: "Persist changes to dynamo storage before reloading",
       invoke: {
@@ -196,6 +209,10 @@ const tubeMachine = createMachine({
       target: ".dynamo",
       actions: "assignPinChange",
       description: "Change a property on the current pin",
+    },
+    SIGNOUT: {
+      target: '.signout',
+      description: 'Invoke user sign out.',
     },
     CLEAR: {
       actions: "clearResponses",
@@ -505,6 +522,9 @@ const tubeMachine = createMachine({
       items: null,
       batch_progress: 0
     })),
+    removeUser: assign((_, event) => ({
+      user: null, 
+    })),
     assignUser: assign((_, event) => ({
       user: event.data, 
     })),
@@ -530,6 +550,11 @@ const tubeMachine = createMachine({
 export const useTube = (onChange) => {
   const [state, send] = useMachine(tubeMachine, {
     services: {
+      
+
+      userSignOut: async() => {  
+        return await Auth.signOut(); 
+      }, 
 
 
       identifyUser: async() => {  
@@ -565,6 +590,7 @@ export const useTube = (onChange) => {
         if (!context.user) return;
         const { userDataKey } = context.user;
         const ok = await setItem(userDataKey, 'library', context.pins);
+        return ok;
 
       },
       dynamoLoad: async(context) => {

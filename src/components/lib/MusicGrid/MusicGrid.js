@@ -8,8 +8,7 @@ import {
   Pagination,
   Collapse,
   Stack,
-  Box,
-  Badge,
+  Box, 
   Breadcrumbs, 
   CircularProgress
 } from '@mui/material';
@@ -273,10 +272,10 @@ const GridView = ({ pages, handleLookup, audio, tube }) => {
               }}
             />
             <Stack sx={{ p: 1 }}>
-              <Flex>
-                {/* {res.trackExplicitness === 'explicit' && <Pill>e</Pill>} */}
-               <Badge  sx={{ '& .MuiBadge-badge': { borderRadius: 1 }}} badgeContent={res.trackExplicitness === 'explicit' ? "E" : 0} color="error">
-                
+              <Flex> 
+
+
+                {/* track name */}
                 <Nowrap
                 color={tube.contains(res) ? "error" : "inherit"}
                   bold={
@@ -286,22 +285,26 @@ const GridView = ({ pages, handleLookup, audio, tube }) => {
                   sx={{ maxWidth }}
                 >
                   {res.trackName || res.collectionName} 
+                  {res.trackExplicitness === 'explicit' && <sup>E</sup>}
                 </Nowrap>
                 
-                </Badge> 
+              
 
                 <Spacer />
 
                 <TubeMenu  tube={tube} track={res} />
               </Flex>
 
+              {/* album name */}
               <Nowrap
                 hover
                 onClick={() => handleLookup(res.collectionId, 'song')}
               sx={{ maxWidth }} width="100%" small>
                 {res.collectionName || 'unknown'}
               </Nowrap>
+
              <Flex>
+              {/* artist name */}
              <Nowrap
                hover
                onClick={() => handleLookup(res.artistId, 'song')}
@@ -309,6 +312,8 @@ const GridView = ({ pages, handleLookup, audio, tube }) => {
                 {res.artistName || 'unknown'}
               </Nowrap>
               <Spacer/>
+
+              {/* track price */}
               <Nowrap 
                 onClick={() => window.open(res.trackViewUrl)} hover wrap small muted>
                 ${res.trackPrice}
@@ -387,6 +392,8 @@ const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => 
                 ? "VolumeUp" 
                 : wrapperTypes[ res.wrapperType ]} />
             
+
+            {/* track name */}
             <Nowrap
               color={tube.contains(res) ? "error" : "inherit"}
               bold={
@@ -406,18 +413,20 @@ const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => 
               {res.trackName || res.collectionName}{' '}
               {res.trackExplicitness === 'explicit' && <sup>E</sup>}{' '}
             </Nowrap>
-
+            
+            {/* artist name  */}
             <Nowrap
             hover
             onClick={() => handleLookup(res.artistId, 'song')}
             >{res.artistName}</Nowrap>
 
+            {/* album name/description */}
             <Nowrap
             hover
             onClick={() => handleLookup(res.collectionId, 'song')}
             >{res.collectionName || res.description}</Nowrap>
 
-            {/* <Nowrap>{res.primaryGenreName}</Nowrap> */}
+              {/* track price */}
             <Nowrap hover
               onClick={() => window.open(res.trackViewUrl)}
             >{res.trackPrice || res.formattedPrice}</Nowrap>
