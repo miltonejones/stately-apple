@@ -20,8 +20,8 @@ import {
   Pill,
   TinyButtonGroup,
   Columns,
-  ConfirmPop
-  // TextIcon
+  ConfirmPop,
+  Tooltag
 } from '../../../styled';
 import { useMenu } from '../../../machines';
 import { getPagination } from '../../../util/getPagination';
@@ -292,7 +292,7 @@ const GridView = ({ pages, handleLookup, audio, tube }) => {
 
                 <Spacer />
 
-                <TubeMenu  tube={tube} track={res} />
+                <TubeMenu items={pages.items} tube={tube} track={res} />
               </Flex>
 
               {/* album name */}
@@ -354,7 +354,7 @@ const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => 
        onChange={ok => !!ok && handleBatch()}
         message={`Add ${pages.items.length} items from  YouTube to your library?`}
         label="Save items to local storage" 
-        ><TinyButton icon="YouTube" /></ConfirmPop>}
+        ><Tooltag component={TinyButton} title="Find all on YouTube" icon="YouTube" /></ConfirmPop>}
       {!!tube.batch && <CircularProgress size={18} />}
         {Object.keys(headers).map((key) => (
           <Flex spacing={1}>
@@ -385,7 +385,7 @@ const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => 
           <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
             <Avatar src={res.artworkUrl100} alt={res.trackName} />
 
-            <TubeMenu tube={tube} track={res} />
+            <TubeMenu items={pages.items} tube={tube} track={res} />
 
             <TinyButton icon={ audio.src === res.previewUrl &&
                 audio.state.matches('opened.playing') 

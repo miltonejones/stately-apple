@@ -2,19 +2,18 @@ import React from 'react';
 import {
   styled,
   Drawer,
-  Stack,
-  IconButton,
+  Stack, 
   Avatar,
   Collapse,
   Box,
+  LinearProgress
 } from '@mui/material';
 // import { useMenu } from '../../../machines';
 import {
   Nowrap,
   TinyButton,
   Flex,
-  Spacer, 
-  TextIcon,
+  Spacer,  
 } from '../../../styled';
 import { sorter } from '../../../util/sorter';
 
@@ -51,7 +50,7 @@ const TubeBrowser = ({ handler }) => {
       type: 'FIND',
       param: track.param,
       track,
-      items,
+      items
     });
   }
    
@@ -60,27 +59,27 @@ const TubeBrowser = ({ handler }) => {
     Albums: 'Album',
     Generes: 'Sell',
   };
-
+  function formatBytesToKB(bytes) {
+    return Math.round(bytes / 1024) + ' KB';
+  }
+  
   const groupKeys = Object.keys(handler.groups);
+  const diskUsed = JSON.stringify(handler.pins).length;
   // const notExpanded =!handler.expanded || !Object.values(handler.expanded).find(value => !!value)
   return (
     <Drawer anchor="left" onClose={handleClose} open={handler.browse}>
       {/* {JSON.stringify(handler.expanded)} */}
+    
       <Flex
         spacing={1}
-        sx={{
-          backgroundColor: (theme) => theme.palette.grey[200],
-          borderBottom: 1,
-          borderColor: 'divider',
-          p: 0.5,
+        sx={{ 
+          p: 1,
         }}
       >
-        <TextIcon icon="YouTube" />
-        <Nowrap>Saved videos</Nowrap>
+        <TinyButton icon="YouTube" />
+        <Nowrap small>Saved videos</Nowrap>
         <Spacer />
-        <IconButton onClick={() => handleClose()}>
-          <TextIcon icon="Close" />
-        </IconButton>
+          <TinyButton onClick={() => handleClose()} icon="Close" />
       </Flex>
       <Layout data-testid="test-for-TubeBrowser">
         {groupKeys 
@@ -212,9 +211,12 @@ const TubeBrowser = ({ handler }) => {
 
 
 
+            <Stack sx={{mt: 4}}>
+              <Nowrap small muted > {formatBytesToKB(diskUsed)} of 400 KB used</Nowrap>
+              <LinearProgress variant="determinate" value={diskUsed / 4000} />
+            </Stack>
 
-
-
+           
 
         </Stack>
         {/* <pre>

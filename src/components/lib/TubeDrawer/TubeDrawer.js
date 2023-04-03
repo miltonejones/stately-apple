@@ -13,7 +13,7 @@ import {
   LinearProgress,
   Popover
 } from '@mui/material';
-import { Nowrap, Spacer, Flex, Columns, TinyButton } from '../../../styled';
+import { Nowrap, Spacer, Flex, Tooltag, Columns, TinyButton } from '../../../styled';
 import { useMenu } from '../../../machines';
 import YouTube from 'react-youtube';
 
@@ -185,7 +185,8 @@ const TubeDrawer = ({ menu, tube }) => {
 
         <Spacer />
         {!!ready && (
-          <TinyButton
+          <Tooltag component={TinyButton}
+            title={selectedItem.pinned ?  "Unpin video" : "Pin video"}
             deg={selectedItem.pinned ? 90 : 0}
             icon="PushPin"
             onClick={() =>
@@ -243,19 +244,10 @@ TubeDrawer.defaultProps = {};
 export default TubeDrawer;
 
 const Embed = ({ onEnd, src }) => {
-  const regex = /v=(.*)/.exec(src);
-  // const monitor = useTubeWatch();
+  const regex = /v=(.*)/.exec(src); 
   if (!regex) {
     return <>Could not parse {src}</>;
-  }
-
-  // const onStateChange = event => {
-  //   console.log (event.target?.getCurrentTime())
-  //   !!event.target && monitor.send({
-  //     type: 'START',
-  //     player: event.target
-  //   })
-  // }
+  } 
   const opts = {
     height: IFRAME_HEIGHT,
     width: IFRAME_WIDTH,
@@ -266,7 +258,6 @@ const Embed = ({ onEnd, src }) => {
   };
 
   return <>
-  <YouTube videoId={regex[1]} opts={opts} onEnd={onEnd}   />
-  {/* ({JSON.stringify(monitor.time)})   */}
+  <YouTube videoId={regex[1]} opts={opts} onEnd={onEnd}   /> 
   </>;
 };

@@ -1,3 +1,4 @@
+import Tooltag from './Tooltag';
 import ConfirmPop from './ConfirmPop';
 import Btn from './Btn';
 import TinyButtonGroup from './TinyButtonGroup';
@@ -13,6 +14,7 @@ import Nowrap from './Nowrap';
  
 
 export {
+  Tooltag,
   ConfirmPop,
   Btn,
   TinyButtonGroup,

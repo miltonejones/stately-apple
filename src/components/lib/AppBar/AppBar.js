@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge,styled, Stack, IconButton, LinearProgress } from '@mui/material';
+import { Badge, styled, Stack, IconButton, LinearProgress } from '@mui/material';
 import {
   Nowrap,
   Flex,
@@ -90,11 +90,13 @@ const AppBar = ({ handler, tube }) => {
               helperText={
                 isListening ? (
                   <>
-                    Click the <TinyButton icon="MicOff" /> to cancel.
+                    Click the <TinyButton icon="MicOff" /> icon to cancel.
                   </>
-                ) : (
-                  ''
-                )
+                ) : isIdle ? (
+                  <>
+                  Click the <TinyButton icon="Mic" /> icon to use voice.
+                </>
+                ) : ""
               }
               startIcon={<IconButton>
                 <TextIcon icon={"MusicNote"} />

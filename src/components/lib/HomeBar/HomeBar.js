@@ -1,6 +1,7 @@
 import React from 'react';
 import Login from '../Login/Login';
-import { Avatar  } from '@mui/material';import {
+import { Badge, Avatar  } from '@mui/material';
+import {
   Nowrap,
   Flex,
   Spacer, 
@@ -14,7 +15,7 @@ const HomeBar = ({ handler, tube }) => {
  return (
   <Flex sx={{ backgroundColor: 'white', p: 2 }}>
   <Flex spacing={3}>
-    <Nowrap
+  <Badge max={1000} color="success" badgeContent={tube.pins?.length}><Nowrap
       hover
       small
       onClick={() => {
@@ -26,7 +27,7 @@ const HomeBar = ({ handler, tube }) => {
       }}
     >
       Library
-    </Nowrap>
+    </Nowrap></Badge> 
     <Nowrap onClick={() => window.open(APPLE_STORE)} small>
       iTunes Store
     </Nowrap>
