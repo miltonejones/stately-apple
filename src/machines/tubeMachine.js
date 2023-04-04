@@ -120,9 +120,7 @@ const tubeMachine = createMachine(
 
       batch_lookup: {
         description: "Look up a series of tracks on youtube.",
-        invoke: {
-          src: "initBatch",
-        },
+        entry: "initBatch",
         initial: "next",
         states: {
           next: {
@@ -187,6 +185,18 @@ const tubeMachine = createMachine(
                 },
               ],
             },
+          },
+        },
+        on: {
+          FIND: {
+            actions: "appendTrack",
+            description:
+              "when FIND is called while batch is in progress, append the track to the batch.",
+          },
+          BATCH: {
+            actions: "appendBatch",
+            description:
+              "when BATCH is called while batch is in progress, append the tracks to the batch.",
           },
         },
       },
@@ -289,7 +299,7 @@ const tubeMachine = createMachine(
           target: ".idle",
           description:
             "If no more items in the batch, clear and return to idle.",
-          actions: "clearBatch",
+          actions: ["clearBatch", "clearResponses"],
         },
       ],
       GOTO: {
@@ -343,6 +353,7 @@ const tubeMachine = createMachine(
       })),
       clearResponses: assign((_, event) => ({
         response: null,
+        pin: null,
         track: {},
       })),
       assignPin: assign((context, event) => {
@@ -389,6 +400,7 @@ const tubeMachine = createMachine(
           track: event.track,
           items: event.items,
           response,
+          folded: false,
           response_index: 0
         };
       }),
@@ -411,6 +423,7 @@ const tubeMachine = createMachine(
         return {
           response,
           first,
+          folded: false,
           videoId: regex[0],
           response_index: 0,
         };
@@ -535,6 +548,7 @@ const tubeMachine = createMachine(
         batch: null,
         param: null,
         items: null,
+        pin: null,
         batch_progress: 0,
       }),
       removeUser: assign((_, event) => ({
@@ -542,6 +556,12 @@ const tubeMachine = createMachine(
       })),
       assignUser: assign((_, event) => ({
         user: event.data,
+      })),
+      appendBatch: assign((context, event) => ({
+        batch: context.batch.concat(event.batch)
+      })),
+      appendTrack: assign((context, event) => ({
+        batch: context.batch.concat(event.track)
       })),
       assignBatch: assign((_, event) => ({
         batch: event.batch,

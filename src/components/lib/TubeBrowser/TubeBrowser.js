@@ -77,6 +77,8 @@ const TubeBrowser = ({ handler, small, searchText }) => {
       track,
       items
     });
+
+    handleClose();
   }
    
 

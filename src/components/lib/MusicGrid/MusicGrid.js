@@ -12,6 +12,7 @@ import {
   CircularProgress,
   TablePagination,
   Switch,
+  IconButton,
   Link,
 } from '@mui/material';
 import {
@@ -25,6 +26,7 @@ import {
   Columns,
   ConfirmPop,
   Tooltag,
+  TextIcon
 } from '../../../styled';
 import { useMenu } from '../../../machines';
 import { getPagination } from '../../../util/getPagination';
@@ -189,12 +191,21 @@ const MusicGrid = ({ handler, tube, audio, small }) => {
         <Flex sx={{ p: (t) => t.spacing(0, small ? 2 : 4) }} spacing={2}>
           {!!handler.lookupType && !!songNode && (
             <Flex spacing={1}>
-              {!!songNode.artworkUrl100 && (
+              
+              {!!songNode.artworkUrl100 && !small && (
                 <Avatar
                   onClick={() => handler.send('RESET')}
                   src={songNode.artworkUrl100}
                   alt={songNode.collectionName}
                 />
+              )}
+
+              {!!small && (
+                <IconButton
+                  onClick={() => handler.send('RESET')} 
+                >
+                  <TextIcon icon="ArrowBack" />
+                </IconButton>
               )}
 
               <Breadcrumbs aria-label="breadcrumb">

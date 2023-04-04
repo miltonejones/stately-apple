@@ -10,9 +10,10 @@ import {
   Divider,
   Avatar,
   LinearProgress,
+  Collapse,
   Popover
 } from '@mui/material';
-import { Nowrap, FlexMenu,  Btn, Spacer, Flex, Tooltag, Columns, TinyButton } from '../../../styled';
+import { Nowrap, FlexMenu, ConfirmPop,  Btn, Spacer, Flex, Columns, TinyButton } from '../../../styled';
 import { useMenu } from '../../../machines';
 import { collatePins } from '../../../util/collatePins';
 import Login from '../Login/Login';
@@ -25,8 +26,8 @@ const PLAYER_HEIGHT = Math.floor(BASE_WIDTH * 0.7);
 const IFRAME_WIDTH = BASE_WIDTH - 40;
 const IFRAME_HEIGHT = Math.floor(IFRAME_WIDTH * 0.5625);
 
-const Layout = styled(Box)(({ theme }) => ({
-  margin: theme.spacing(1),
+const Layout = styled(Box)(({ theme, small }) => ({
+  margin: theme.spacing(small ? 0 : 1),
   width: BASE_WIDTH,
   display: 'flex',
   justifyContent: 'center',
@@ -36,18 +37,18 @@ const Layout = styled(Box)(({ theme }) => ({
   },
 }));
 
-const Video = styled(Card)(({ theme, calculatedHeight, small, open, offset = 0 }) => ({
+const Video = styled(Card)(({ theme, folded, calculatedHeight, small, open, offset = 0 }) => ({
   position: 'fixed',
   bottom: open ? 'var(--bottom-bar-offset)' : -1400,
   right: 0,
   transition: 'all 0.2s linear',
-  height: small ? 40 : (PLAYER_HEIGHT + offset),
+  height: folded || small ? 40 : (PLAYER_HEIGHT + offset),
   width: PLAYER_WIDTH,
   backgroundColor: 'white',
   zIndex: 100,
   [theme.breakpoints.down('md')]: {
     width: '100vw',
-    height: small ? 40 : `calc(${calculatedHeight}px + ${offset}px + 100px)`
+    height: folded || small ? 40 : `calc(${calculatedHeight}px + ${offset}px + 80px)`
   },
 }));
 
@@ -144,6 +145,8 @@ const TubeList = ({ tube, selectedItem }) => {
   );
 
   if (!tube.items) return <i />;
+  const current_index = tube.items?.map(item => item.tubekey).indexOf(selectedItem?.href)
+
 
   return (
     <>
@@ -159,7 +162,9 @@ const TubeList = ({ tube, selectedItem }) => {
           <Nowrap small muted>
             Video Playlist
           </Nowrap>
-          <Spacer /> 
+          <TinyButton disabled={current_index < 1} icon="SkipPrevious" onClick={menu.handleClose(current_index - 1)} />
+          <TinyButton icon="SkipNext" onClick={menu.handleClose(current_index + 1)} />
+          <Spacer />  
           <TinyButton icon="Close" onClick={menu.handleClose()} />
         </Flex>
 
@@ -287,6 +292,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
 
   return (
     <Video
+      folded={tube.folded}
       small={busy}
       calculatedHeight={calculatedHeight}
       offset={!!pin ? 40 : 0}
@@ -307,25 +313,38 @@ const TubeDrawer = ({ small, menu, tube }) => {
 
         <Spacer />
         {!!ready && (
-          <Tooltag component={TinyButton}
-            title={itemIsPinned ?  "Unpin video" : "Pin video"}
+          <ConfirmPop
+
+            onChange={(ok) => !!ok && tube.send({
+              type: 'PIN',
+              pin: {
+                ...trackPin,
+                title: selectedItem?.page,
+                tubekey: selectedItem?.href,
+              },
+            })}
+
+            message={itemIsPinned ?  "Unpin video from your collection?" : "Pin video to your collection?"}
+            label="Confirm action"
+        >
+        
+         <TinyButton  
             deg={itemIsPinned ? 90 : 0}
-            icon="PushPin"
-            onClick={() =>
-              tube.send({
-                type: 'PIN',
-                pin: {
-                  ...trackPin,
-                  title: selectedItem?.page,
-                  tubekey: selectedItem?.href,
-                },
-              })
-            }
+            icon="PushPin" 
           />
+        </ConfirmPop>
+        
         )}
 
         <TubeList tube={tube} selectedItem={selectedItem}/>
 
+        <TinyButton onClick={() => {
+                tube.send({
+                  type: 'CHANGE',
+                  key: "folded",
+                  value: !tube.folded,
+                })
+            }}  icon={tube.folded ? "UnfoldMore" : "UnfoldLess"} />
         <TinyButton icon="Close" onClick={menu.handleClose(-1)} />
 
       </Flex>
@@ -347,11 +366,14 @@ const TubeDrawer = ({ small, menu, tube }) => {
           </Flex>
 
         </Stack>}
-      {!no_access && <Layout>
+
+      <Collapse in={!tube.folded}>
+
+      {!no_access && <Layout small={small}>
         {!!response?.pages?.length && !busy && (<Stack spacing={2}>
           <Embed small={small}
               onEnd={() => {
-                tube.send('NEXT');
+               tube.state.matches('idle') &&  tube.send('NEXT');
               }}
               src={selectedItem?.href}
             />
@@ -379,6 +401,11 @@ const TubeDrawer = ({ small, menu, tube }) => {
 
         </Stack>)}
       </Layout>}
+      
+
+      </Collapse>
+
+
     </Video>
   );
 };
@@ -399,7 +426,5 @@ const Embed = ({ onEnd, small, src }) => {
     },
   };
 
-  return <>
-  <YouTube videoId={regex[1]} opts={opts} onEnd={onEnd}   /> 
-  </>;
+  return <YouTube videoId={regex[1]} opts={opts} onEnd={onEnd} />  
 };
