@@ -21,9 +21,9 @@ import { sorter } from '../../../util/sorter';
 import { getPagination } from '../../../util/getPagination';
 import { collatePins } from '../../../util/collatePins';
 
-const Layout = styled(Box)(({ theme }) => ({
+const Layout = styled(Box)(({ small, theme }) => ({
   margin: theme.spacing(1, 2),
-  width: 400,
+  width: small ? "80vw" : 400,
 }));
 
 
@@ -34,7 +34,7 @@ const groupCaptions = {
 };
 
 
-const TubeBrowser = ({ handler, searchText }) => {
+const TubeBrowser = ({ handler, small, searchText }) => {
   // const menu = useMenu();
   const selectedItem = !handler.response?.pages
     ? {}
@@ -131,7 +131,7 @@ const TubeBrowser = ({ handler, searchText }) => {
           />
       </Flex>
  
-      <Layout data-testid="test-for-TubeBrowser">
+      <Layout data-testid="test-for-TubeBrowser" small={small}>
         {groupKeys 
         .map((key) => (
           <Stack>

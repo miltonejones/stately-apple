@@ -15,10 +15,11 @@ import MediaMenu from '../MediaMenu/MediaMenu';
 
 const Layout = styled(({ ...props }) => (
   <Stack {...props} spacing={props.isIdle ? 2 : 0} direction={props.isIdle ? 'column' : 'row'} />
-))(({ theme, isIdle }) => ({
+))(({ theme, small, isIdle }) => ({
   backgroundColor: theme.palette.common.white, //isIdle ? theme.palette.common.white : theme.palette.grey[200]
-  padding: theme.spacing(1, 3),
-  marginBottom: theme.spacing(1),
+  padding: small ? theme.spacing(1) : theme.spacing(1, 3),
+  marginBottom: small ? 0 : theme.spacing(1), 
+  // border: 'solid 1px green'
 }));
 
 const AppBar = ({ handler, tube }) => {
@@ -38,12 +39,15 @@ const AppBar = ({ handler, tube }) => {
 
     const lgFieldWidth = isSmallOrLess ? '80vw' : '560px';
     const smFieldWidth = isSmallOrLess ? '50vw' : '440px';
+    const headerTag = isSmallOrLess ? 'h3' : 'h1';
+    const smallTag = isSmallOrLess ? 'h6' : 'h5';
+    const iconSize = isSmallOrLess ? 48 : 76;
   return (
     <>
       {isBusy && <LinearProgress />}
-      <Layout isIdle={isIdle} data-testid="test-for-AppBar">
-        <Flex spacing={isIdle ? 0.5 : 0} sx={{ p: 1 }}>
-{/* {JSON.stringify(isSmallOrLess)} */}
+      <Layout small={isSmallOrLess} isIdle={isIdle} data-testid="test-for-AppBar">
+        <Flex spacing={isIdle ? 0.5 : 0} sx={{ p: isSmallOrLess ? 0 : 1 }}>
+ 
           {!isIdle && <Badge max={1000} color="success" badgeContent={tube.pins?.length}><IconButton  onClick={handleBrowse}>
               <TextIcon icon="Menu" />
             </IconButton></Badge>}
@@ -53,8 +57,8 @@ const AppBar = ({ handler, tube }) => {
             sx={
               isIdle
                 ? {
-                    width: 76,
-                    height: 76,
+                    width: iconSize,
+                    height: iconSize,
                   }
                 : {
                   display: 'none'
@@ -67,7 +71,7 @@ const AppBar = ({ handler, tube }) => {
             <Nowrap
               key={i}
               color={colors[i % colors.length]}
-              variant={isIdle ? 'h1' : 'h5'}
+              variant={isIdle ? headerTag : smallTag}
             >
               {ltr}
             </Nowrap>

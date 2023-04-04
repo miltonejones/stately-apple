@@ -61,8 +61,8 @@ const CollapsiblePagination = ({ pages, page, collapsed, onChange }) => {
 
 
 
-const Layout = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(0, 2, 24, 2),
+const Layout = styled(Box)(({ small, theme }) => ({
+  padding: theme.spacing(0, small ? 0 : 2, 24, small ? 0 : 2),
 }));
 
 const Frame = styled(Card)(({ theme }) => ({
@@ -183,11 +183,12 @@ const MusicGrid = ({ handler, tube, audio, small }) => {
 
   const View = handler.viewAs === 'grid' ? GridView : ListView;
   const openHeight = small ? '280px' : '300px';
+  const closedHeight = small ? '190px' : '200px';
 
   return (
     <Collapse in={!isIdle}>
       {!!results.length && (
-        <Flex sx={{ p: (t) => t.spacing(0, 4) }} spacing={2}>
+        <Flex sx={{ p: (t) => t.spacing(0, small ? 2 : 4) }} spacing={2}>
 
 
           {!!handler.lookupType && !!songNode && <Flex spacing={1}>
@@ -239,14 +240,14 @@ const MusicGrid = ({ handler, tube, audio, small }) => {
         </Flex>
       )}
 
-      <Layout data-testid="test-for-MusicGrid">
+      <Layout data-testid="test-for-MusicGrid" small={small}>
         {!!results.length && (
           <Card
             sx={{
               m: small ? 1 : 2,
               maxWidth: '100vw', 
               transition: 'height 0.2s linear',
-              height: `calc(100vh - ${isOpen ? openHeight : "180px"})`,
+              height: `calc(100vh - ${isOpen ? openHeight : closedHeight})`,
               overflow: 'auto',
             }}
           >
@@ -473,8 +474,8 @@ const ListView = ({ pages, audio, tube, small, handleSort, handleLookup, handler
             
 
             {/* track name */}
-            <Stack>
-              <Nowrap
+            <Stack sx={{ maxWidth: '80vw', overflow: 'hidden' }}>
+              <Nowrap 
                 muted={!tube.contains(res)}
                 bold={
                   (audio.src === res.previewUrl &&
@@ -494,10 +495,10 @@ const ListView = ({ pages, audio, tube, small, handleSort, handleLookup, handler
                 {res.trackName || res.collectionName}{' '}
                 {res.trackExplicitness === 'explicit' && <sup>E</sup>}{' '}
               </Nowrap>
-              {!!small && <Flex spacing={1} columns="130px 130px 1fr">
+              {!!small && <Flex spacing={1} sx={{ maxWidth: 'calc(100vw - 160px)'}}>
                   <Nowrap small><Link onClick={() => handleLookup(res.artistId, 'song')}>{res.artistName}</Link> - <Link  onClick={() => handleLookup(res.collectionId, 'song')}>{res.collectionName}</Link></Nowrap>
                   <Spacer />
-                  <Nowrap hover
+                  <Nowrap hover wrap
                     onClick={() => window.open(res.trackViewUrl)}
                     small>{res.trackPrice}</Nowrap>
               </Flex>}

@@ -58,7 +58,7 @@ function App() {
       <TubeBrowser small={isSmallOrLess} searchText={apple.searchText} handler={tube} />
 
       {/* youtube video player  */}
-      <TubeDrawer menu={tubeMenu} tube={tube} />
+      <TubeDrawer small={isSmallOrLess} menu={tubeMenu} tube={tube} />
 
       {/* app footer  */}
       <AppFooter small={isSmallOrLess} />

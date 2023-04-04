@@ -28,6 +28,10 @@ const Layout = styled(Box)(({ theme }) => ({
   width: BASE_WIDTH,
   display: 'flex',
   justifyContent: 'center',
+  [theme.breakpoints.down('md')]: {
+    width: '100vw',
+    height: 500
+  },
 }));
 
 const Video = styled(Card)(({ theme, small, open, offset = 0 }) => ({
@@ -39,6 +43,10 @@ const Video = styled(Card)(({ theme, small, open, offset = 0 }) => ({
   width: PLAYER_WIDTH,
   backgroundColor: 'white',
   zIndex: 100,
+  [theme.breakpoints.down('md')]: {
+    width: '100vw',
+    height: `calc(55vh + ${offset}px)`
+  },
 }));
 
 
@@ -250,7 +258,7 @@ const PlayList = ({ tube, playlists, pinnedItem }) => {
   </>
 }
 
-const TubeDrawer = ({ menu, tube }) => {
+const TubeDrawer = ({ small, menu, tube }) => {
   const { response, track } = tube;
 
   // const response = menu.data;
@@ -315,7 +323,7 @@ const TubeDrawer = ({ menu, tube }) => {
 
       <Layout>
         {!!response?.pages?.length && !busy && (<Stack spacing={2}>
-          <Embed
+          <Embed small={small}
               onEnd={() => {
                 tube.send('NEXT');
               }}
@@ -351,14 +359,14 @@ const TubeDrawer = ({ menu, tube }) => {
 TubeDrawer.defaultProps = {};
 export default TubeDrawer;
 
-const Embed = ({ onEnd, src }) => {
+const Embed = ({ onEnd, small, src }) => {
   const regex = /v=(.*)/.exec(src); 
   if (!regex) {
     return <>Could not parse {src}</>;
   } 
   const opts = {
     height: IFRAME_HEIGHT,
-    width: IFRAME_WIDTH,
+    width: small ? (window.innerWidth - 32) : IFRAME_WIDTH,
     playerVars: {
       // https://developers.google.com/youtube/player_parameters
       autoplay: 1,
