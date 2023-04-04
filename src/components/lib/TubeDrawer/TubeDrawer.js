@@ -45,7 +45,7 @@ const Video = styled(Card)(({ theme, small, open, offset = 0 }) => ({
   zIndex: 100,
   [theme.breakpoints.down('md')]: {
     width: '100vw',
-    height: `calc(55vh + ${offset}px)`
+    height: small ? 40 : `calc(55vh + ${offset}px)`
   },
 }));
 
