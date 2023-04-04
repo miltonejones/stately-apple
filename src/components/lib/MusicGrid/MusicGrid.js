@@ -192,15 +192,17 @@ const MusicGrid = ({ handler, tube, audio, small }) => {
 
 
           {!!handler.lookupType && !!songNode && <Flex spacing={1}>
-           {!!songNode.artworkUrl100 && <Avatar src={songNode.artworkUrl100} alt={songNode.collectionName}/>}
+           {!!songNode.artworkUrl100 && <Avatar 
+            onClick={() => handler.send('RESET')}
+           src={songNode.artworkUrl100} alt={songNode.collectionName}/>}
 
 
 
             <Breadcrumbs aria-label="breadcrumb">
-               <Nowrap small={small} onClick={() => handler.send('RESET')} hover>
-                   {!small && <>Tracks like</>} "{handler.param}"
-                </Nowrap>
-              <Nowrap small={small}>
+                 {!small && <Nowrap small={small} onClick={() => handler.send('RESET')} hover>
+                 <>Tracks like</>"{handler.param}"
+                </Nowrap>} 
+              <Nowrap sx={{ maxWidth: '40vw'}} small={small}>
               {!small && <>{prefixLabel}</>}: <b>{songNode.collectionName || songNode.artistName}</b>
               </Nowrap>
               </Breadcrumbs>

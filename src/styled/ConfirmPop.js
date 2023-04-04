@@ -6,6 +6,7 @@ import Flex from './Flex';
 import Spacer from './Spacer';
 import Nowrap from './Nowrap';
 import TinyButton from './TinyButton';
+import FlexMenu from './FlexMenu';
 import Btn from './Btn';
 
 const ConfirmPop =  ({ 
@@ -23,7 +24,7 @@ const ConfirmPop =  ({
       {children}
     </Box>
 
-    <Popover
+    <FlexMenu component={Popover}
       anchorEl={menu.anchorEl}
       onClose={menu.handleClose()}
       open={Boolean(menu.anchorEl)}
@@ -64,7 +65,7 @@ const ConfirmPop =  ({
           </Btn>
         </Flex>
       </Stack>
-    </Popover>
+    </FlexMenu>
   </>
   )
 }
