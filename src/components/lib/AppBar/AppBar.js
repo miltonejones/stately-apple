@@ -22,7 +22,7 @@ const Layout = styled(({ ...props }) => (
   // border: 'solid 1px green'
 }));
 
-const AppBar = ({ handler, tube }) => {
+const AppBar = ({ handler, tube, small }) => {
   const theme = useTheme();
   const isSmallOrLess = useMediaQuery(theme.breakpoints.down('md'));
   const colors = ['info', 'error', 'success', 'warning'];
@@ -124,12 +124,12 @@ const AppBar = ({ handler, tube }) => {
                     />
                   </IconButton>
               
-                  <IconButton>
+                  {!small && <IconButton>
                     <TextIcon
                       onClick={() => handler.send('CLOSE')}
                       icon={isIdle ? 'Search' : 'Close'}
                     />
-                  </IconButton>
+                  </IconButton>}
                 </Flex>
               }
             />

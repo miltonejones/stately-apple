@@ -107,6 +107,8 @@ const ResultList = ({ tube, selectedItem }) => {
           <Nowrap small muted>
             YouTube Results
           </Nowrap>
+          <Spacer /> 
+          <TinyButton icon="Close" onClick={menu.handleClose()} />
         </Flex>
 
         <Divider />
@@ -155,6 +157,8 @@ const TubeList = ({ tube, selectedItem }) => {
           <Nowrap small muted>
             Video Playlist
           </Nowrap>
+          <Spacer /> 
+          <TinyButton icon="Close" onClick={menu.handleClose()} />
         </Flex>
 
         <Divider />

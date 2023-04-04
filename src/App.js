@@ -43,7 +43,7 @@ function App() {
       <div className={apple.isIdle ? 'App centered' : 'App'}>
 
         {/* search bar works on home page and becomes a toolbar when not idle  */}
-        <AppBar tube={tube} handler={apple} />
+        <AppBar small={isSmallOrLess} tube={tube} handler={apple} />
 
         {/* show search results when present */}
         {apple.state.matches('search') && (
