@@ -1,3 +1,4 @@
+import FlexMenu from './FlexMenu';
 import Tooltag from './Tooltag';
 import ConfirmPop from './ConfirmPop';
 import Btn from './Btn';
@@ -14,6 +15,7 @@ import Nowrap from './Nowrap';
  
 
 export {
+  FlexMenu,
   Tooltag,
   ConfirmPop,
   Btn,

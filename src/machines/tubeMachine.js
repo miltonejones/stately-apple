@@ -1,6 +1,7 @@
 import { createMachine, assign } from "xstate";
 import { useMachine } from "@xstate/react";
 import { Auth } from "aws-amplify";
+import { objectGet, objectPut } from "../util/objectPut";
 
 // add machine code
 const tubeMachine = createMachine(
@@ -12,6 +13,8 @@ const tubeMachine = createMachine(
     context: {
       track: {},
       playlists: [],
+      response_index: 0,
+      pins: []
     },
     states: {
       identify: {
@@ -53,7 +56,7 @@ const tubeMachine = createMachine(
           collate: {
             description: "Organize flat list into categories for the UI",
             entry: "initPins",
-          },
+          }, 
         },
         on: {
           FIND: [
@@ -145,6 +148,13 @@ const tubeMachine = createMachine(
                       target: "#youtube_search.batch_lookup.find_next",
                       actions: ["persistResponse", "initPins"],
                       description: "Save response to storage",
+                    },
+                  ],
+                  onError: [
+                    {
+                      target: "#youtube_search.batch_lookup.find_next",
+                      description: "fail silently",
+                      actions: "incrementBatch",
                     },
                   ],
                 },
@@ -275,6 +285,7 @@ const tubeMachine = createMachine(
 
         return {
           pins,
+          pin: event.pin,
           items: context.items.map((item) =>
             item.tubekey === event.pin.tubekey ? event.pin : item
           ),
@@ -298,6 +309,7 @@ const tubeMachine = createMachine(
 
         return {
           pins,
+          pin: event.pin,
           items: [event.pin],
           response: {
             ...response,
@@ -325,58 +337,24 @@ const tubeMachine = createMachine(
         };
 
         return {
+          pin,
           param: event.param,
           track: event.track,
           items: event.items,
           response,
+          response_index: 0
         };
       }),
       initPins: assign((context, event) => {
         const pins =
           context.pins || JSON.parse(localStorage.getItem("tb-pins") || "[]");
-
-        const groupNames = {
-          artistName: "Artists",
-          collectionName: "Albums",
-          primaryGenreName: "Genres",
-        };
-
-        const playlists = pins.reduce((out, pin) => {
-          if (!pin.playlists) return out;
-
-          pin.playlists.map((name) => {
-            if (!out[name]) {
-              Object.assign(out, {
-                [name]: [],
-              });
-            }
-            return out[name].push(pin);
-          });
-
-          return out;
-        }, {});
-
-        const groups = Object.keys(groupNames).reduce((collated, name) => {
-          const group = pins.reduce((out, pin) => {
-            if (!out[pin[name]]) {
-              Object.assign(out, {
-                [pin[name]]: [],
-              });
-            }
-            out[pin[name]].push(pin);
-            return out;
-          }, {});
-
-          Object.assign(collated, {
-            [groupNames[name]]: group,
-          });
-          return collated;
-        }, {});
+   
 
         return {
-          pins,
-          groups,
-          playlists,
+           pins,
+          groups:[],
+          playlists: [],
+          response_index: 0
         };
       }),
       assignResponse: assign((_, event) => {
@@ -385,7 +363,9 @@ const tubeMachine = createMachine(
         const regex = /v=(.*)/.exec(first.href);
         return {
           response,
+          first,
           videoId: regex[0],
+          response_index: 0,
         };
       }),
       assignParam: assign((_, event) => ({
@@ -443,28 +423,35 @@ const tubeMachine = createMachine(
 
         return {
           pins,
+          pin,
+          first,
           batch_index,
           batch_progress,
           param: next_item?.param,
         };
       }),
 
+      advanceResponse: assign((context, event) => ({
+        response_index: context.response_index + event.index
+      })),
+
       assignByIndex: assign((context, event) => {
-        const track = context.items[event.index];
+        const pin = context.items[event.index];
 
         const response = {
           pages: [
             {
-              page: track.title,
-              href: track.tubekey,
+              page: pin.title,
+              href: pin.tubekey,
               pinned: 1,
             },
           ],
         };
 
         return {
-          param: track?.param,
-          track,
+          param: pin?.param,
+          pin,
+          track: pin,
           response,
         };
       }),
@@ -492,6 +479,7 @@ const tubeMachine = createMachine(
         return {
           param: track?.param,
           track,
+          pin: track,
           response,
         };
       }),
@@ -515,13 +503,16 @@ const tubeMachine = createMachine(
       })),
       applyPins: assign((_, event) => {
         // alert (1);
-        console.log({
-          pins: event.data,
-        });
+        // console.log({
+        //   pins: event.data,
+        // });
         return {
           pins: event.data,
         };
       }),
+      applyDynamoItems: assign((_, event) => ({
+        dynamoItems: event.data
+      })),
       initBatch: assign({
         batch_index: 0,
       }),
@@ -565,16 +556,26 @@ export const useTube = (onChange) => {
       },
       dynamoPersist: async (context) => {
         if (!context.user) return;
-        const { userDataKey } = context.user;
-        // context.pins.map(stripPin);
-        const ok = await setItem(userDataKey, "library", context.pins.map(stripPin));
-        return ok;
-      },
+        const { userDataKey } = context.user; 
+
+        await objectPut({
+          username: userDataKey, 
+          pins: context.pins
+        }) 
+      }, 
       dynamoLoad: async (context) => {
         if (!context.user) return [];
-        const { userDataKey } = context.user;
-        const ok = await getItem(userDataKey, "library");
-        return ok;
+        const { userDataKey } = context.user; 
+        try {
+          const db = await objectGet(userDataKey);
+          if (db) { 
+            return db.pins;
+          }
+        } catch (ex) {
+          console.log ({ ex })
+        }
+
+        return false;
       },
       execSearch: async (context) => {
         return await searchTube(context.param);
@@ -582,13 +583,7 @@ export const useTube = (onChange) => {
     },
   });
 
-  const contains = (track) => {
-    // console.log (
-    //   state.context.pins,
-    //   track
-    // )
-    return state.context.pins?.some((f) => f.trackId === track.trackId);
-  };
+  const contains = (track) => state.context.pins?.some((f) => f.trackId === track.trackId); 
 
   const diagnosticProps = {
     ...tubeMachine,
@@ -608,79 +603,7 @@ export const useTube = (onChange) => {
 const API_ENDPOINT =
   "https://pv37bpjkgl.execute-api.us-east-1.amazonaws.com/find";
 const searchTube = async (param) => {
-  const response = await fetch(API_ENDPOINT + `/${encodeURIComponent(param)}`);
+  const response = await fetch(API_ENDPOINT + `/${encodeURIComponent(param.replace(/\//g, ' '))}`);
   return await response.json();
 };
-
-const DYNAMO_ENDPOINT = "https://storage.puppeteerstudio.com";
-/** */
-const stripPin = (pin) => {
-  const { 
-    collectionCensoredName,
-    trackCensoredName ,
-    artworkUrl30 ,
-    artworkUrl60 ,
-    collectionPrice, 
-    releaseDate ,
-    country ,
-    currency ,
-    collectionExplicitness ,
-    isStreamable,
-    kind,
-    ...rest 
-  } = pin;
  
-
-  return rest;
-};
-
-/**0
-: 
-
- 
-
-
-
-previewUrl 
-trackPrice 
-artworkUrl100 
-artistViewUrl 
-collectionViewUrl 
-trackViewUrl 
-trackExplicitness 
-discCount 
-discNumber 
-trackCount 
-trackNumber 
-trackTimeMillis 
-primaryGenreName 
-wrapperType 
-artistId 
-collectionId 
-trackId 
-artistName 
-collectionName 
-trackName 
-param 
-title 
-tubekey
-
-*/
-
-const setItem = async (auth_key, data_key, data_value) => {
-  // build request options
-  const requestOptions = {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ auth_key, data_key, data_value }),
-  };
-
-  // send POST request
-  const response = await fetch(DYNAMO_ENDPOINT, requestOptions);
-  return await response.json();
-};
-
-const getItem = async (auth_key, data_key) => {
-  const response = await fetch(DYNAMO_ENDPOINT + `/${auth_key}/${data_key}`);
-  return await response.json();
-};

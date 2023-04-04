@@ -1,8 +1,7 @@
 import React from 'react';
 import {
   styled,
-  Avatar,
-  Menu,
+  Avatar, 
   MenuItem,
   Card,
   Pagination,
@@ -11,7 +10,9 @@ import {
   Box, 
   Breadcrumbs, 
   CircularProgress,
-  Switch
+  TablePagination,
+  Switch,
+  Link
 } from '@mui/material';
 import {
   Nowrap,
@@ -19,6 +20,7 @@ import {
   Flex,
   Spacer,
   Pill,
+  FlexMenu,
   TinyButtonGroup,
   Columns,
   ConfirmPop,
@@ -27,6 +29,37 @@ import {
 import { useMenu } from '../../../machines';
 import { getPagination } from '../../../util/getPagination';
 import TubeMenu from '../TubeMenu/TubeMenu';
+
+
+
+
+
+const CollapsiblePagination = ({ pages, page, collapsed, onChange }) => {
+  if (collapsed) {
+    return (
+      <TablePagination
+        sx={{
+          padding: 0,
+          borderBottom: 0, 
+        }}
+        count={Number(pages.itemCount)}
+        page={page - 1}
+        rowsPerPage={pages.pageSize}
+        rowsPerPageOptions={[]}
+        onPageChange={(a, num) => onChange(num + 1)}
+      />
+    );
+  }
+  return (
+    <Pagination
+      count={Number(pages.pageCount)}
+      page={page}
+      onChange={(a, num) => onChange(num)}
+    />
+  );
+};
+
+
 
 const Layout = styled(Box)(({ theme }) => ({
   padding: theme.spacing(0, 2, 24, 2),
@@ -61,7 +94,7 @@ const headers = {
   // formattedPrice: 'Price'
 };
 
-const SortMenu = ({ handler, handleSort, onChange }) => {
+const SortMenu = ({ handler, small, handleSort, onChange }) => {
   const menu = useMenu(onChange);
 
   return (
@@ -72,6 +105,7 @@ const SortMenu = ({ handler, handleSort, onChange }) => {
           sx={{ color: 'inherit' }}
           color="inherit"
         />
+      {!small && (<>
         <Nowrap tiny hover bold sx={{ color: 'white' }}>
           {headers[handler.sortBy]}
         </Nowrap>
@@ -80,8 +114,9 @@ const SortMenu = ({ handler, handleSort, onChange }) => {
           color="inherit"
           icon="KeyboardArrowDown"
         />
+      </>)}
       </Pill>
-      <Menu
+      <FlexMenu
         anchorEl={menu.anchorEl}
         open={Boolean(menu.anchorEl)}
         onClose={menu.handleClose()}
@@ -100,12 +135,12 @@ const SortMenu = ({ handler, handleSort, onChange }) => {
             </Flex>
           </MenuItem>
         ))}
-      </Menu>
+      </FlexMenu>
     </>
   );
 };
 
-const MusicGrid = ({ handler, tube, audio }) => {
+const MusicGrid = ({ handler, tube, audio, small }) => {
   const { results = [] } = handler.results || {};
   const { isIdle } = handler;
   const isOpen = audio.state.matches('opened');
@@ -147,6 +182,7 @@ const MusicGrid = ({ handler, tube, audio }) => {
   };
 
   const View = handler.viewAs === 'grid' ? GridView : ListView;
+  const openHeight = small ? '280px' : '300px';
 
   return (
     <Collapse in={!isIdle}>
@@ -167,10 +203,11 @@ const MusicGrid = ({ handler, tube, audio }) => {
             </Flex>}
 
 
-         {pages.pageCount > 1  && <Pagination
-            count={Number(pages.pageCount)}
-            page={Number(handler.page)}
-            onChange={(a, b) =>
+         {pages.pageCount > 1  && <CollapsiblePagination
+            pages={pages}
+            page={Number(handler.page)} 
+            collapsed={small}
+            onChange={(b) =>
               handler.setProp({
                 target: {
                   name: 'page',
@@ -195,10 +232,10 @@ const MusicGrid = ({ handler, tube, audio }) => {
             values={['grid', 'list']}
             buttons={['GridView', 'ViewList']}
           />
-          <SortMenu handler={handler} onChange={(e) => !!e && handleSort(e)} />
-          <Nowrap small muted>
+          <SortMenu small={small} handler={handler} onChange={(e) => !!e && handleSort(e)} />
+          {!small && <Nowrap small muted>
             {pages.startNum} to {pages.lastNum} of {pages.itemCount} results
-          </Nowrap>
+          </Nowrap>}
         </Flex>
       )}
 
@@ -206,15 +243,16 @@ const MusicGrid = ({ handler, tube, audio }) => {
         {!!results.length && (
           <Card
             sx={{
-              m: 2,
+              m: small ? 1 : 2,
               maxWidth: '100vw', 
               transition: 'height 0.2s linear',
-              height: `calc(100vh - ${isOpen ? "300px" : "180px"})`,
+              height: `calc(100vh - ${isOpen ? openHeight : "180px"})`,
               overflow: 'auto',
             }}
           >
             {!!results && (
               <View
+                small={small}
                 pages={pages}
                 audio={audio}
                 tube={tube}
@@ -236,8 +274,8 @@ const MusicGrid = ({ handler, tube, audio }) => {
 MusicGrid.defaultProps = {};
 export default MusicGrid;
 
-const GridView = ({ pages, handleLookup, audio, tube }) => {
-  const columns = '1fr 1fr 1fr 1fr 1fr';
+const GridView = ({ pages, handleLookup, audio, small, tube }) => {
+  const columns = small ? "1fr 1fr" : '1fr 1fr 1fr 1fr 1fr';
   const maxWidth = 240;
   return (
     <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
@@ -327,10 +365,12 @@ const GridView = ({ pages, handleLookup, audio, tube }) => {
   );
 };
 
-const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => {
+const ListView = ({ pages, audio, tube, small, handleSort, handleLookup, handler }) => {
 
  
-  const columns = handler.selectMode ? "40px 40px 24px 24px 1fr 1fr 1fr 1fr" : '40px 24px 24px 1fr 1fr 1fr 1fr';
+  const coreCols = handler.selectMode ? "40px 40px 24px 24px 1fr" : '40px 24px 24px 1fr';
+  const columns = coreCols + ( small ? "" : " 1fr 1fr 1fr")
+
   const downloadableItems = pages.items?.filter(item => !(handler.excludedItems && handler.excludedItems[item.previewUrl]));
 
   const handleBatch = () => {
@@ -367,12 +407,16 @@ const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => 
     })
   }
 
+  const headerNames = Object.keys(headers).slice(0, columns.split(' ').length - (handler.selectMode ? 3 : 2))
 
 
   return (
     <>
+    {/* [{JSON.stringify(tube.pin)}] */}
       <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
+
         {!!handler.selectMode && <Box />}
+
         <Switch checked={handler.selectMode} onClick={handleSelectMode} size="small" />
         
 
@@ -383,7 +427,8 @@ const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => 
         ><Tooltag component={TinyButton} title="Find all on YouTube" icon="YouTube" /></ConfirmPop>}
       {!!tube.batch && <CircularProgress size={18} />}
 
-        {Object.keys(headers).map((key) => (
+
+        {headerNames.map((key) => (
           <Flex spacing={1}>
             <Nowrap
               bold={key === handler.sortBy}
@@ -419,49 +464,65 @@ const ListView = ({ pages, audio, tube, handleSort, handleLookup, handler }) => 
 
             <TubeMenu items={pages.items} tube={tube} track={res} />
 
-            <TinyButton icon={ audio.src === res.previewUrl &&
-                audio.state.matches('opened.playing') 
+            <TinyButton icon={ 
+               (audio.src === res.previewUrl &&
+                audio.state.matches('opened.playing')) || 
+                tube.pin?.previewUrl === res.previewUrl
                 ? "VolumeUp" 
                 : wrapperTypes[ res.wrapperType ]} />
             
 
             {/* track name */}
-            <Nowrap
-              color={tube.contains(res) ? "error" : "inherit"}
-              bold={
-                audio.src === res.previewUrl &&
-                audio.state.matches('opened.playing')
-              }
-              hover
-              onClick={() => {
-                audio.handlePlay(res.previewUrl, {
-                  src: res.previewUrl,
-                  Title: res.trackName,
-                  trackList: pages.items,
-                  ...res,
-                });
-              }}
-            >
-              {res.trackName || res.collectionName}{' '}
-              {res.trackExplicitness === 'explicit' && <sup>E</sup>}{' '}
-            </Nowrap>
+            <Stack>
+              <Nowrap
+                muted={!tube.contains(res)}
+                bold={
+                  (audio.src === res.previewUrl &&
+                  audio.state.matches('opened.playing')) || 
+                  tube.pin?.previewUrl === res.previewUrl
+                }
+                hover
+                onClick={() => {
+                  audio.handlePlay(res.previewUrl, {
+                    src: res.previewUrl,
+                    Title: res.trackName,
+                    trackList: pages.items,
+                    ...res,
+                  });
+                }}
+              >
+                {res.trackName || res.collectionName}{' '}
+                {res.trackExplicitness === 'explicit' && <sup>E</sup>}{' '}
+              </Nowrap>
+              {!!small && <Flex spacing={1} columns="130px 130px 1fr">
+                  <Nowrap small><Link onClick={() => handleLookup(res.artistId, 'song')}>{res.artistName}</Link> - <Link  onClick={() => handleLookup(res.collectionId, 'song')}>{res.collectionName}</Link></Nowrap>
+                  <Spacer />
+                  <Nowrap hover
+                    onClick={() => window.open(res.trackViewUrl)}
+                    small>{res.trackPrice}</Nowrap>
+              </Flex>}
+            </Stack>
             
-            {/* artist name  */}
-            <Nowrap
-            hover
-            onClick={() => handleLookup(res.artistId, 'song')}
-            >{res.artistName}</Nowrap>
+            
+            {!small && <>
+              {/* artist name  */}
+              <Nowrap
+              hover
+             
+              >{res.artistName}</Nowrap>
 
-            {/* album name/description */}
-            <Nowrap
-            hover
-            onClick={() => handleLookup(res.collectionId, 'song')}
-            >{res.collectionName || res.description}</Nowrap>
+              {/* album name/description */}
+              <Nowrap
+              hover
+            
+              >{res.collectionName || res.description}</Nowrap>
 
-              {/* track price */}
-            <Nowrap hover
-              onClick={() => window.open(res.trackViewUrl)}
-            >{res.trackPrice || res.formattedPrice}</Nowrap>
+                {/* track price */}
+              <Nowrap hover
+                onClick={() => window.open(res.trackViewUrl)}
+              >{res.trackPrice || res.formattedPrice}</Nowrap>
+ 
+            </>}
 
           </Columns>
         ))}

@@ -1,6 +1,6 @@
 import './App.css';
 import { useApple, useTube, useMenu, useAudio } from './machines';
-import { LinearProgress } from '@mui/material';
+import {   useTheme, useMediaQuery, LinearProgress } from '@mui/material';
 
 import AudioPlayer from './components/lib/AudioPlayer/AudioPlayer';
 import MusicGrid from './components/lib/MusicGrid/MusicGrid';
@@ -17,6 +17,9 @@ import awsExports from './aws-exports';
 Amplify.configure(awsExports);
 
 function App() {
+  const theme = useTheme();
+  const isSmallOrLess = useMediaQuery(theme.breakpoints.down('md'));
+
   const tubeMenu = useMenu((val) => 
     // clear the video window when its closed
   val === -1 && tube.send('CLEAR'));
@@ -44,21 +47,21 @@ function App() {
 
         {/* show search results when present */}
         {apple.state.matches('search') && (
-          <MusicGrid tube={tube} handler={apple} audio={audio} />
+          <MusicGrid small={isSmallOrLess} tube={tube} handler={apple} audio={audio} />
         )}
 
         {/* itunes sample audio player  */}
-        <AudioPlayer handler={audio} />
+        <AudioPlayer small={isSmallOrLess} handler={audio} />
       </div>
 
       {/* youtube video sidebar */}
-      <TubeBrowser handler={tube} />
+      <TubeBrowser small={isSmallOrLess} searchText={apple.searchText} handler={tube} />
 
       {/* youtube video player  */}
       <TubeDrawer menu={tubeMenu} tube={tube} />
 
       {/* app footer  */}
-      <AppFooter />
+      <AppFooter small={isSmallOrLess} />
     </>
   );
 }

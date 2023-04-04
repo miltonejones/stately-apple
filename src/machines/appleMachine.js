@@ -243,6 +243,15 @@ export const useApple = () => {
     })
   } 
   
+  const searchText = (param) => {
+    send({
+      type: "CHANGE",
+      key: 'param',
+      value: param
+    });
+    send('FIND');
+  } 
+  
 
   // fire the HEAR event when the recognizer has a result
   recognition.addEventListener("result",  (event) => { 
@@ -266,6 +275,7 @@ export const useApple = () => {
     state,
     send, 
     setProp,
+    searchText,
     isIdle,
     diagnosticProps,
     ...state.context

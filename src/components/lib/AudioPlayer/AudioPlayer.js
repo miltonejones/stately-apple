@@ -1,18 +1,19 @@
 import React from 'react';
 import { styled, Card, Avatar, Drawer, Switch, Stack, IconButton, LinearProgress, Box } from '@mui/material';
-import { Nowrap, Columns, Flex, Spacer, TextIcon } from '../../../styled';
+import { Nowrap, Columns, TinyButton, Flex, Spacer, TextIcon } from '../../../styled';
 import { useMenu } from '../../../machines';
  
 const Layout = styled(Box)(({ theme }) => ({
   margin: theme.spacing(1)
  }));
 
- const Player = styled(Card)(({ open, theme }) => ({
+ const Player = styled(Card)(({ open, small, theme }) => ({
    position: 'fixed',
    bottom:  open ? 'var(--bottom-bar-offset)' : -400,
    transition: "all 0.2s linear",
-   height: 116,
+   height: small ? 80 : 116,
    width: '100vw',
+   left: 0,
    backgroundColor: 'white'
  }));
 
@@ -76,21 +77,64 @@ const Layout = styled(Box)(({ theme }) => ({
   
   </>
  }
+
+ const SmallPlayer = ({ handler }) => {
+  const paused = handler.state.matches('opened.paused');
+  // const { coords = [] } = handler;
+  const maxWidth = 'calc(100vw - 142px)';
+
+  return (
+    <Player small elevation={4} anchor="bottom" open={['opened', 'replay'].some(handler.state.matches)}>
+
+    <Layout data-testid="test-for-SmallPlayer">
+     <Columns  columns="56px 1fr">
+        <Avatar variant="rounded" sx={{ width: 56, height: 56 }} src={handler.artworkUrl100} alt={handler.trackName} />
+        <Stack>
+          <Columns sx={{ m: theme => theme.spacing(0, 1) }} columns="32px 1fr 32px 24px">
+            <Nowrap wrap small>{handler.current_time_formatted}</Nowrap>
+          <LinearProgress value={handler.progress} variant={!handler.progress ? "indeterminate" : "determinate"} />
+            <Nowrap wrap small muteds>{handler.duration_formatted}</Nowrap>
+            <TinyButton icon="Close" onClick={() => handler.send('CLOSE')} />
+          </Columns>
+          <Flex sx={{ m: theme => theme.spacing(0, 1) }} >
+            <Stack>
+              <Nowrap sx={{ maxWidth }} small>{handler.trackName}</Nowrap>
+              <Nowrap sx={{ maxWidth }} small muted>{handler.collectionName} - {handler.artistName}</Nowrap>
+            </Stack>
+            <Spacer />
+            <IconButton color="primary" onClick={() => handler.send('PAUSE')}>
+              <TextIcon sx={{ width: 32, height: 32 }} icon={paused ? "PlayCircle" : "PauseCircle"} />
+            </IconButton>
+
+          </Flex>
+        </Stack>
+     </Columns>
+     
+        {/* progress bar  */}
+    </Layout>
+   </Player>
+  )
+ }
    
  
-const AudioPlayer = ({ handler }) => {
+const AudioPlayer = ({ handler, small }) => {
   const paused = handler.state.matches('opened.paused');
   const { coords = [] } = handler;
+
+  if (small) {
+    return <SmallPlayer handler={handler} />
+  }
+
  return (
   <Player elevation={4} anchor="bottom" open={['opened', 'replay'].some(handler.state.matches)}>
     
    <Layout data-testid="test-for-AudioPlayer">
     <Columns spacing={2} columns="100px 180px 220px 1fr 420px">
 
-
+    {/* track avatar  */}
     <Avatar variant="rounded" sx={{ width: 100, height: 100 }} src={handler.artworkUrl100} alt={handler.trackName} />
 
-
+       {/* track details */}
       <Stack>
         <Nowrap>{handler.trackName}</Nowrap>
         <Nowrap small muted>{handler.collectionName}</Nowrap>
@@ -104,7 +148,7 @@ const AudioPlayer = ({ handler }) => {
           <Nowrap small muted bold={handler.repeat} hover>Continuous Play</Nowrap></Flex>
       </Stack>
 
-
+      {/* control buttons  */}
       <Flex>
 
 
@@ -123,6 +167,7 @@ const AudioPlayer = ({ handler }) => {
       })}>
         <TextIcon icon="SkipPrevious" />
       </IconButton>
+
       <IconButton color="primary" onClick={() => handler.send('PAUSE')}>
         <TextIcon sx={{ width: 40, height: 40 }} icon={paused ? "PlayCircle" : "PauseCircle"} />
       </IconButton>
@@ -140,6 +185,7 @@ const AudioPlayer = ({ handler }) => {
       </Flex>
 
 
+      {/* progress bar  */}
       <Stack>
         <Columns columns="32px 1fr 32px">
           <Nowrap wrap small>{handler.current_time_formatted}</Nowrap>
@@ -148,7 +194,7 @@ const AudioPlayer = ({ handler }) => {
         </Columns>
       </Stack>
 
-
+      {/* equalizer */}
       <Box >
         <Equalizer coords={coords} />
         {/* {JSON.stringify(handler.state.value)}

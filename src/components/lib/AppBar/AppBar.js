@@ -1,5 +1,7 @@
 import React from 'react';
-import { Badge, styled, Stack, IconButton, LinearProgress } from '@mui/material';
+import { Badge, styled, Stack, IconButton, LinearProgress,
+  useTheme, useMediaQuery
+} from '@mui/material';
 import {
   Nowrap,
   Flex,
@@ -20,23 +22,28 @@ const Layout = styled(({ ...props }) => (
 }));
 
 const AppBar = ({ handler, tube }) => {
+  const theme = useTheme();
+  const isSmallOrLess = useMediaQuery(theme.breakpoints.down('md'));
   const colors = ['info', 'error', 'success', 'warning'];
   const { isIdle } = handler;
   const isBusy = ['search.lookup', 'search.list.entity'].some(handler.state.matches);
   const isListening = handler.state.matches('transcribe.listening');
   const handleBrowse = () => {
-            tube.send({
-              type: 'CHANGE',
-              key: 'browse',
-              value: !tube.browse
-            })
-          };
+      tube.send({
+        type: 'CHANGE',
+        key: 'browse',
+        value: !tube.browse
+      })
+    };
+
+    const lgFieldWidth = isSmallOrLess ? '80vw' : '560px';
+    const smFieldWidth = isSmallOrLess ? '50vw' : '440px';
   return (
     <>
       {isBusy && <LinearProgress />}
       <Layout isIdle={isIdle} data-testid="test-for-AppBar">
         <Flex spacing={isIdle ? 0.5 : 0} sx={{ p: 1 }}>
-
+{/* {JSON.stringify(isSmallOrLess)} */}
           {!isIdle && <Badge max={1000} color="success" badgeContent={tube.pins?.length}><IconButton  onClick={handleBrowse}>
               <TextIcon icon="Menu" />
             </IconButton></Badge>}
@@ -75,7 +82,7 @@ const AppBar = ({ handler, tube }) => {
             handler.send('FIND');
           }}
         >
-          <Flex spacing={1} sx={{ p: 1 }}>
+          <Flex spacing={1} sx={{ p: 1, justifyContent: 'center' }}>
             <IconTextField
               placeholder={isListening
                 ? "Say the name of a song or artist"
@@ -83,7 +90,7 @@ const AppBar = ({ handler, tube }) => {
               label="Find any music"
               googlish={isIdle}
               size="small"
-              sx={{ width: isIdle ? 520 : 440 }}
+              sx={{ width: isIdle ? lgFieldWidth : smFieldWidth }}
               onChange={handler.setProp}
               value={handler.param}
               name="param"
@@ -98,9 +105,10 @@ const AppBar = ({ handler, tube }) => {
                 </>
                 ) : ""
               }
-              startIcon={<IconButton>
+              startIcon={isSmallOrLess ? null : <IconButton>
                 <TextIcon icon={"MusicNote"} />
               </IconButton>}
+
               endIcon={
                 <Flex spacing={1}>
                   <IconButton>
@@ -125,7 +133,7 @@ const AppBar = ({ handler, tube }) => {
           </Flex>
         </form>
 
-        <MediaMenu handler={handler} />
+       {!isSmallOrLess && <MediaMenu handler={handler} />}
       </Layout>
     </>
   );

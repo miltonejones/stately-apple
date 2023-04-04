@@ -26,7 +26,8 @@ export  const getPagination = (collection,  {
     visible,
     lastNum,
     items,
-    pageSize
+    pageSize,
+    page
   }
 
   
