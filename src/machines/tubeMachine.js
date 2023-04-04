@@ -71,11 +71,18 @@ const tubeMachine = createMachine(
               actions: "assignPersistedResponse",
             },
           ],
-          BATCH: {
-            target: "batch_lookup",
-            actions: "assignBatch",
-            description: "Assign batch list to context",
-          },
+          BATCH: [
+            {
+              target: "batch_lookup",
+              cond: "isLoggedIn",
+              actions: "assignBatch",
+              description: "Assign batch list to context",
+            },
+            {
+              target: "no_access",
+              description: "Move to no-access state",
+            },
+          ],
         },
       },
 
@@ -197,18 +204,57 @@ const tubeMachine = createMachine(
           ],
         },
       },
-      dynamo: {
-        description: "Persist changes to dynamo storage before reloading",
-        invoke: {
-          src: "dynamoPersist",
-          onDone: [
-            {
-              target: "idle",
-            },
-          ],
+
+
+  
+      no_access: {
+        description: "User is stuck here unless they cancel or log in",
+        on: {
+          OK: {
+            target: "idle",
+            description: "User leaves without logging in",
+          },
         },
       },
+  
+  
+      dynamo: {
+        description: "Persist changes to dynamo storage before reloading",
+        initial: "check_login",
+        states: {
+          check_login: {
+            description: "Make sure the user is logged in before attempting to save.",
+            always: [
+              {
+                target: "store",
+                cond: "isLoggedIn",
+                description: "Only save if user is logged in",
+              },
+              {
+                target: "#youtube_search.no_access",
+                description: "Move to no-access state",
+              },
+            ],
+          },
+          store: {
+            description: "Persist changes to dynamo storage",
+            invoke: {
+              src: "dynamoPersist",
+              onDone: [
+                {
+                  target: "#youtube_search.idle",
+                },
+              ],
+            },
+          },
+        },
+      },
+  
+  
+
     },
+
+    
     on: {
       PIN: {
         target: ".dynamo",
@@ -267,6 +313,7 @@ const tubeMachine = createMachine(
           .indexOf(selectedItem?.href);
         return selectedIndex < context.items.length - 1;
       },
+      isLoggedIn: (context) => !!context.user,
       isntPinned: (context) => {
         return !context.pins.some((f) => f.param === context.param);
       },

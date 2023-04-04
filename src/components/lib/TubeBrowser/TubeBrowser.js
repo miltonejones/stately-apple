@@ -33,6 +33,12 @@ const groupCaptions = {
   Generes: e => `${e.artistName} - ${e.collectionName}`,
 };
 
+const groupIcons = {
+  Artists: 'People',
+  Albums: 'Album',
+  Generes: 'Selling',
+};
+
 
 const TubeBrowser = ({ handler, small, searchText }) => {
   // const menu = useMenu();
@@ -73,12 +79,6 @@ const TubeBrowser = ({ handler, small, searchText }) => {
     });
   }
    
-  const groupIcons = {
-    Artists: 'People',
-    Albums: 'Album',
-    Generes: 'Sell',
-  };
-
 
   function formatBytesToKB(bytes) {
     const mb = 1024 * 1024;

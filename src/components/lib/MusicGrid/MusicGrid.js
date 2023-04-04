@@ -208,7 +208,7 @@ const MusicGrid = ({ handler, tube, audio, small }) => {
                   </Nowrap>
                 )}
                 <Nowrap sx={{ maxWidth: '40vw' }} small={small}>
-                  {!small && <>{prefixLabel}</>}:{' '}
+                  {!small && <>{prefixLabel}:</>}{' '}
                   <b>{songNode.collectionName || songNode.artistName}</b>
                 </Nowrap>
               </Breadcrumbs>
@@ -581,10 +581,10 @@ const ListView = ({
             {!small && (
               <>
                 {/* artist name  */}
-                <Nowrap hover>{res.artistName}</Nowrap>
+                <Nowrap onClick={() => handleLookup(res.artistId, 'song')} hover>{res.artistName}</Nowrap>
 
                 {/* album name/description */}
-                <Nowrap hover>{res.collectionName || res.description}</Nowrap>
+                <Nowrap onClick={() => handleLookup(res.collectionId, 'song')} hover>{res.collectionName || res.description}</Nowrap>
 
                 {/* track price */}
                 <Nowrap hover onClick={() => window.open(res.trackViewUrl)}>

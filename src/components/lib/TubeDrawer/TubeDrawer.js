@@ -12,9 +12,11 @@ import {
   LinearProgress,
   Popover
 } from '@mui/material';
-import { Nowrap, FlexMenu, Spacer, Flex, Tooltag, Columns, TinyButton } from '../../../styled';
+import { Nowrap, FlexMenu,  Btn, Spacer, Flex, Tooltag, Columns, TinyButton } from '../../../styled';
 import { useMenu } from '../../../machines';
 import { collatePins } from '../../../util/collatePins';
+import Login from '../Login/Login';
+
 import YouTube from 'react-youtube';
 
 const BASE_WIDTH = 500;
@@ -34,7 +36,7 @@ const Layout = styled(Box)(({ theme }) => ({
   },
 }));
 
-const Video = styled(Card)(({ theme, small, open, offset = 0 }) => ({
+const Video = styled(Card)(({ theme, calculatedHeight, small, open, offset = 0 }) => ({
   position: 'fixed',
   bottom: open ? 'var(--bottom-bar-offset)' : -1400,
   right: 0,
@@ -45,7 +47,7 @@ const Video = styled(Card)(({ theme, small, open, offset = 0 }) => ({
   zIndex: 100,
   [theme.breakpoints.down('md')]: {
     width: '100vw',
-    height: small ? 40 : `calc(55vh + ${offset}px)`
+    height: small ? 40 : `calc(${calculatedHeight}px + ${offset}px + 100px)`
   },
 }));
 
@@ -267,9 +269,10 @@ const TubeDrawer = ({ small, menu, tube }) => {
 
   // const response = menu.data;
   const busy = tube.state.matches('lookup');
+  const no_access = tube.state.matches('no_access');
   const ready = !!response?.pages?.length && !busy;
 
-  const param = `${track.trackName} ${track.artistName}`;
+  const param = !!track.trackName ? `${track.trackName} ${track.artistName}` : "Sorry!";
   const trackPin = {
     ...track,
     param,
@@ -278,21 +281,23 @@ const TubeDrawer = ({ small, menu, tube }) => {
   const selectedItem = !response?.pages ? {} : response.pages[tube.response_index];
   const itemIsPinned = !!selectedItem?.pinned;
   const pin = tube.items?.find(f => f.tubekey === selectedItem?.href);
-  const {   playlists } = collatePins(tube.pins);
+  const { playlists } = collatePins(tube.pins);
+  const calculatedHeight = window.innerWidth * 0.5625;
 
 
   return (
     <Video
       small={busy}
+      calculatedHeight={calculatedHeight}
       offset={!!pin ? 40 : 0}
-      open={Boolean(menu.open) || busy}
+      open={Boolean(menu.open) || busy || no_access}
       onClose={menu.handleClose()}
     >
       {!!busy && <LinearProgress />}
       <Flex spacing={1} sx={{ p: (theme) => theme.spacing(1, 2) }}>
         <TinyButton color={itemIsPinned && !busy ? 'error' : 'inherit'} icon="YouTube" />
 
-        {!!busy && <Nowrap small muted>
+        {!!busy && !!track.trackName && <Nowrap small muted>
             Finding {param}...
           </Nowrap>}
 
@@ -324,8 +329,25 @@ const TubeDrawer = ({ small, menu, tube }) => {
         <TinyButton icon="Close" onClick={menu.handleClose(-1)} />
 
       </Flex>
+      {!!no_access && <Stack sx={{ p: 2 }}>
+        
+          <Nowrap bold>Sorry.</Nowrap>
+          <Nowrap small>You must be logged in to use this function.</Nowrap>
+          <Nowrap small muted wrap>You can come back and try again after you log in..</Nowrap>
+          <Flex sx={{ mt: 2}} spacing={1}>
+            <Btn onClick={() => {
+                tube.send({
+                  type: 'CHANGE',
+                  key: "login",
+                  value: true,
+                })
+            }} variant="contained" color="warning">Sign In</Btn>
+            <Btn onClick={() => tube.send('OK')}>Cancel</Btn>
+            {!!tube.login && <Login />}
+          </Flex>
 
-      <Layout>
+        </Stack>}
+      {!no_access && <Layout>
         {!!response?.pages?.length && !busy && (<Stack spacing={2}>
           <Embed small={small}
               onEnd={() => {
@@ -356,7 +378,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
           </Flex>}
 
         </Stack>)}
-      </Layout>
+      </Layout>}
     </Video>
   );
 };
@@ -369,7 +391,7 @@ const Embed = ({ onEnd, small, src }) => {
     return <>Could not parse {src}</>;
   } 
   const opts = {
-    height: IFRAME_HEIGHT,
+    height: small ? (window.innerWidth * 0.5625) : IFRAME_HEIGHT,
     width: small ? (window.innerWidth - 32) : IFRAME_WIDTH,
     playerVars: {
       // https://developers.google.com/youtube/player_parameters
