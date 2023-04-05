@@ -25,10 +25,25 @@ const PLAYER_WIDTH = BASE_WIDTH + 32;
 const PLAYER_HEIGHT = Math.floor(BASE_WIDTH * 0.7);
 const IFRAME_WIDTH = BASE_WIDTH - 40;
 const IFRAME_HEIGHT = Math.floor(IFRAME_WIDTH * 0.5625);
+//  width: small ? (window.innerWidth - 32) : IFRAME_WIDTH,
+
+const Sizewrap = ({ children, size, offset = 0, mobile, ...props }) => {
+  const baseWidth = mobile ? (window.innerWidth - 32) : IFRAME_WIDTH;
+  const wrapWidth = baseWidth - offset;
+
+  return <Nowrap {...props} sx={{  
+    ...props.sx,
+    width: wrapWidth   
+    }}>
+    {children}
+  </Nowrap>
+
+}
+
 
 const Layout = styled(Box)(({ theme, small }) => ({
   margin: theme.spacing(small ? 0 : 1),
-  width: BASE_WIDTH,
+  // width: BASE_WIDTH,
   display: 'flex',
   justifyContent: 'center',
   [theme.breakpoints.down('md')]: {
@@ -272,12 +287,12 @@ const PlayList = ({ tube, playlists, pinnedItem }) => {
 const TubeDrawer = ({ small, menu, tube }) => {
   const { response, track } = tube;
 
-  // const response = menu.data;
+ 
   const busy = tube.state.matches('lookup');
   const no_access = tube.state.matches('no_access');
   const ready = !!response?.pages?.length && !busy;
 
-  const param = !!track.trackName ? `${track.trackName} ${track.artistName}` : "Sorry!";
+  const param = !!track.trackName ? `${track.trackName} ${track.artistName}` : ("Sorry!" +  JSON.stringify(tube.state.value));
   const trackPin = {
     ...track,
     param,
@@ -306,10 +321,10 @@ const TubeDrawer = ({ small, menu, tube }) => {
         {!!busy && !!track.trackName && <Nowrap small muted>
             Finding {param}...
           </Nowrap>}
-
-        {!busy && !!selectedItem && <Nowrap small bold={itemIsPinned}>
+ 
+        {!busy && !!selectedItem && <Sizewrap mobile={small} offset={124} small bold={itemIsPinned}>
           {selectedItem.page || param}
-        </Nowrap>}
+        </Sizewrap>}
 
         <Spacer />
         {!!ready && (
@@ -387,10 +402,10 @@ const TubeDrawer = ({ small, menu, tube }) => {
             <Stack>
              <Flex sx={{ maxWidth: BASE_WIDTH - 200}} spacing={1}>
              <PlayList playlists={playlists} tube={tube} pinnedItem={pin} />
-              <Nowrap>{pin.trackName}</Nowrap>
+              <Sizewrap mobile={small} offset={150}>{pin.trackName}</Sizewrap>
              
              </Flex>
-              <Nowrap sx={{ maxWidth: BASE_WIDTH - 200}} small muted>{pin.collectionName}</Nowrap>
+             <Sizewrap mobile={small} offset={120} small muted>{pin.collectionName}</Sizewrap>
             </Stack>
             <Spacer />
             <Nowrap hover small>

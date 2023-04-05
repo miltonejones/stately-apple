@@ -3,14 +3,12 @@ import {
   styled,
   Avatar,
   MenuItem,
-  Card,
-  Pagination,
+  Card, 
   Collapse,
   Stack,
   Box,
   Breadcrumbs,
-  CircularProgress,
-  TablePagination,
+  CircularProgress, 
   Switch,
   IconButton,
   Link,
@@ -26,36 +24,13 @@ import {
   Columns,
   ConfirmPop,
   Tooltag,
-  TextIcon
+  TextIcon,
+  CollapsiblePagination
 } from '../../../styled';
 import { useMenu } from '../../../machines';
 import { getPagination } from '../../../util/getPagination';
 import TubeMenu from '../TubeMenu/TubeMenu';
 
-const CollapsiblePagination = ({ pages, page, collapsed, onChange }) => {
-  if (collapsed) {
-    return (
-      <TablePagination
-        sx={{
-          padding: 0,
-          borderBottom: 0,
-        }}
-        count={Number(pages.itemCount)}
-        page={page - 1}
-        rowsPerPage={pages.pageSize}
-        rowsPerPageOptions={[]}
-        onPageChange={(a, num) => onChange(num + 1)}
-      />
-    );
-  }
-  return (
-    <Pagination
-      count={Number(pages.pageCount)}
-      page={page}
-      onChange={(a, num) => onChange(num)}
-    />
-  );
-};
 
 const Layout = styled(Box)(({ small, theme }) => ({
   padding: theme.spacing(0, small ? 0 : 2, 24, small ? 0 : 2),
@@ -82,17 +57,21 @@ const headers = {
   wrapperType: '',
   trackName: 'Title',
   artistName: 'Artist',
-  collectionName: 'Album',
-  // primaryGenreName: 'Genre',
-  trackPrice: 'Price',
-  // formattedPrice: 'Price'
+  collectionName: 'Album', 
+  trackPrice: 'Price', 
+};
+
+const sortTypes = {
+  ...headers,
+  trackNumber: 'Track Number',
+  wrapperType: 'Media Type', 
 };
 
 const SortMenu = ({ handler, small, handleSort, onChange }) => {
   const menu = useMenu(onChange);
 
   return (
-    <>
+    <> 
       <Pill sx={{ gap: 1 }} onClick={menu.handleClick} active>
         <TinyButton
           icon="SortByAlpha"
@@ -102,7 +81,7 @@ const SortMenu = ({ handler, small, handleSort, onChange }) => {
         {!small && (
           <>
             <Nowrap tiny hover bold sx={{ color: 'white' }}>
-              {headers[handler.sortBy]}
+              {sortTypes[handler.sortBy]}
             </Nowrap>
             <TinyButton
               deg={handler.sortUp > 0 ? 180 : 0}
@@ -117,10 +96,10 @@ const SortMenu = ({ handler, small, handleSort, onChange }) => {
         open={Boolean(menu.anchorEl)}
         onClose={menu.handleClose()}
       >
-        {Object.keys(headers).map((key) => (
+        {Object.keys(sortTypes).map((key) => (
           <MenuItem key={key} onClick={menu.handleClose(key)}>
             <Flex sx={{ width: 160 }} bold={key === handler.sortBy} hover>
-              {headers[key]}
+              {sortTypes[key]}
               <Spacer />
               {key === handler.sortBy && (
                 <TinyButton
@@ -156,11 +135,12 @@ const MusicGrid = ({ handler, tube, audio, small }) => {
     pageSize: 25,
   });
 
-  const handleLookup = (id, entity) => {
+  const handleLookup = (id, entity, order) => {
     return handler.send({
       type: 'LOOKUP',
       entity,
       id,
+      order
     });
   };
 
@@ -364,7 +344,7 @@ const GridView = ({ pages, handleLookup, audio, small, tube }) => {
               {/* album name */}
               <Nowrap
                 hover
-                onClick={() => handleLookup(res.collectionId, 'song')}
+                onClick={() => handleLookup(res.collectionId, 'song', 'trackNumber')}
                 sx={{ maxWidth }}
                 width="100%"
                 small
@@ -376,7 +356,7 @@ const GridView = ({ pages, handleLookup, audio, small, tube }) => {
                 {/* artist name */}
                 <Nowrap
                   hover
-                  onClick={() => handleLookup(res.artistId, 'song')}
+                  onClick={() => handleLookup(res.artistId, 'song', 'collectionName')}
                   sx={{ maxWidth }}
                   width="100%"
                   small
@@ -432,27 +412,18 @@ const ListView = ({
       type: 'BATCH',
       batch,
     });
+    handler.setProp('selectMode', false);
   };
 
   const handleSelectMode = () => {
-    handler.setProp({
-      target: {
-        name: 'selectMode',
-        value: !handler.selectMode,
-      },
-    });
+    handler.setProp('selectMode', !handler.selectMode); 
   };
 
   const handleExclude = (id) => {
-    handler.setProp({
-      target: {
-        name: 'excludedItems',
-        value: {
-          ...handler.excludedItems,
-          [id]: !(handler.excludedItems && handler.excludedItems[id]),
-        },
-      },
-    });
+    handler.setProp('excludedItems', {
+      ...handler.excludedItems,
+      [id]: !(handler.excludedItems && handler.excludedItems[id]),
+    });  
   };
 
   const headerNames = Object.keys(headers).slice(
@@ -462,7 +433,7 @@ const ListView = ({
 
   return (
     <>
-      {/* [{JSON.stringify(tube.pin)}] */}
+ 
       <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
         {!!handler.selectMode && <Box />}
 
@@ -566,12 +537,12 @@ const ListView = ({
               {!!small && (
                 <Flex spacing={1} sx={{ maxWidth: 'calc(100vw - 160px)' }}>
                   <Nowrap small>
-                    <Link onClick={() => handleLookup(res.artistId, 'song')}>
+                    <Link onClick={() => handleLookup(res.artistId, 'song', 'collectionName')}>
                       {res.artistName}
                     </Link>{' '}
                     -{' '}
                     <Link
-                      onClick={() => handleLookup(res.collectionId, 'song')}
+                      onClick={() => handleLookup(res.collectionId, 'song', 'trackNumber')}
                     >
                       {res.collectionName}
                     </Link>
@@ -592,10 +563,10 @@ const ListView = ({
             {!small && (
               <>
                 {/* artist name  */}
-                <Nowrap onClick={() => handleLookup(res.artistId, 'song')} hover>{res.artistName}</Nowrap>
+                <Nowrap onClick={() => handleLookup(res.artistId, 'song', 'collectionName')} hover>{res.artistName}</Nowrap>
 
                 {/* album name/description */}
-                <Nowrap onClick={() => handleLookup(res.collectionId, 'song')} hover>{res.collectionName || res.description}</Nowrap>
+                <Nowrap onClick={() => handleLookup(res.collectionId, 'song', 'trackNumber')} hover>{res.collectionName || res.description}</Nowrap>
 
                 {/* track price */}
                 <Nowrap hover onClick={() => window.open(res.trackViewUrl)}>

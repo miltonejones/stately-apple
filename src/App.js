@@ -1,6 +1,6 @@
 import './App.css';
 import { useApple, useTube, useMenu, useAudio } from './machines';
-import {   useTheme, useMediaQuery, LinearProgress } from '@mui/material';
+import { useTheme, useMediaQuery, LinearProgress } from '@mui/material';
 
 import AudioPlayer from './components/lib/AudioPlayer/AudioPlayer';
 import MusicGrid from './components/lib/MusicGrid/MusicGrid';
@@ -12,9 +12,11 @@ import AppFooter from './components/lib/AppFooter/AppFooter';
 
 import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
-
 import awsExports from './aws-exports';
 Amplify.configure(awsExports);
+
+
+
 
 function App() {
   const theme = useTheme();
@@ -23,10 +25,14 @@ function App() {
   const tubeMenu = useMenu((val) => 
     // clear the video window when its closed
   val === -1 && tube.send('CLEAR'));
+
+
   const tube = useTube((res) => {
     // open the video window when youtube video is found
     tubeMenu.handleClick(false, res);
-  });
+  }, tubeMenu.handleClose());
+
+
   const apple = useApple();
   const audio = useAudio();
   return (

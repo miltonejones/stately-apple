@@ -6,8 +6,7 @@ import {
   Avatar,
   Collapse,
   Box,
-  LinearProgress,
-  Pagination,
+  LinearProgress, 
 } from '@mui/material';
 // import { useMenu } from '../../../machines';
 import {
@@ -15,11 +14,13 @@ import {
   TinyButton,
   Flex,
   Spacer,  
-  IconTextField
+  IconTextField,
+  CollapsiblePagination
 } from '../../../styled';
 import { sorter } from '../../../util/sorter';
 import { getPagination } from '../../../util/getPagination';
 import { collatePins } from '../../../util/collatePins';
+import { contains } from '../../../util/contains';
 
 const Layout = styled(Box)(({ small, theme }) => ({
   margin: theme.spacing(1, 2),
@@ -30,13 +31,13 @@ const Layout = styled(Box)(({ small, theme }) => ({
 const groupCaptions = {
   Artists: e => e.collectionName,
   Albums: e => e.artistName,
-  Generes: e => `${e.artistName} - ${e.collectionName}`,
+  Genres: e => `${e.artistName} - ${e.collectionName}`,
 };
 
 const groupIcons = {
   Artists: 'People',
   Albums: 'Album',
-  Generes: 'Selling',
+  Genres: 'Sell',
 };
 
 
@@ -92,9 +93,9 @@ const TubeBrowser = ({ handler, small, searchText }) => {
 
   const pins = !handler.filter 
     ? handler.pins 
-    : handler.pins.filter(f => (f.title.toLowerCase().indexOf(handler.filter.toLowerCase()) > -1) || 
-      (f.artistName.toLowerCase().indexOf(handler.filter.toLowerCase()) > -1) || 
-      (f.collectionName.toLowerCase().indexOf(handler.filter.toLowerCase()) > -1))
+    : handler.pins.filter(f => contains(f.title, handler.filter) || 
+          contains(f.artistName, handler.filter) || 
+          contains(f.collectionName, handler.filter)  )
   const { groups, playlists } = collatePins(pins);
 
   
@@ -105,8 +106,10 @@ const TubeBrowser = ({ handler, small, searchText }) => {
  
   return (
     <Drawer anchor="left" onClose={handleClose} open={handler.browse}>
-      {/* {JSON.stringify(handler.expanded)} */}
-    {!handler.state.can('FIND') && <>The librarian is busy right now. Try again later.</>}
+ 
+      {!handler.state.can('FIND') && <>The librarian is busy right now. Try again later.</>}
+
+      {/* drawer toolbar */}
       <Flex
         spacing={1}
         sx={{ 
@@ -119,10 +122,8 @@ const TubeBrowser = ({ handler, small, searchText }) => {
           <TinyButton onClick={() => handleClose()} icon="Close" />
       </Flex>
 
-
-      <Flex sx={{
-        p: 1
-      }}>
+      {/* search box */}
+      <Flex sx={{ p: 1 }}>
         <IconTextField 
           endIcon={<TinyButton onClick={() => handleFilter("")} icon={!!handler.filter ? "Close" : "Search"} />}
           value={handler.filter}
@@ -133,23 +134,21 @@ const TubeBrowser = ({ handler, small, searchText }) => {
           />
       </Flex>
  
+      {/* collection groups */}
       <Layout data-testid="test-for-TubeBrowser" small={small}>
-        {groupKeys 
-        .map((key) => (
-          <Stack>
-
+        {groupKeys.map((key) => (
+          <Stack> 
 
             <Flex spacing={1}>
-              <TinyButton icon={groupIcons[key]} 
-              
-              color={ handler.expanded && handler.expanded[key] ? "error" : "inherit"}
+              <TinyButton icon={groupIcons[key]}  
+                color={ handler.expanded && handler.expanded[key] ? "error" : "inherit"}
               />
-              <Nowrap  muted={!(handler.expanded && handler.expanded[key])} small hover onClick={() => handleExpand(key)}>
+              <Nowrap muted={!(handler.expanded && handler.expanded[key])} small hover onClick={() => handleExpand(key)}>
                 {key}
               </Nowrap>
             </Flex>
             
-            <Collection 
+            <CategoryNode 
               groups={groups}
               groupKey={key}
               handler={handler}
@@ -157,10 +156,7 @@ const TubeBrowser = ({ handler, small, searchText }) => {
               handlePlay={handlePlay}
               handleExpand={handleExpand}
               selectedItem={selectedItem}
-            /> 
-
- 
-
+            />  
           </Stack>
         ))}
 
@@ -177,13 +173,11 @@ const TubeBrowser = ({ handler, small, searchText }) => {
 
                     
 
-          <Collapse in={handler.expanded && handler.expanded.lists}>
-              {/* category collections */}
-
-
+          <Collapse in={handler.expanded && handler.expanded.lists}>  
               {Object.keys(playlists).map((cat) => (
 
                 <Stack sx={{ ml: 2 }}>
+
                   <Flex spacing={1}>
                     <TinyButton
                       icon="KeyboardArrowDown"
@@ -193,35 +187,27 @@ const TubeBrowser = ({ handler, small, searchText }) => {
                           : 270
                       }
                     />
-                    <Nowrap
-                      small
-                   
-                      hover
-                      onClick={() => handleExpand(`lists/${cat}`)}
-                    >
-                      {' '}
+                    <Nowrap small hover onClick={() => handleExpand(`lists/${cat}`)}> 
                       {cat}
                     </Nowrap>
                   </Flex>
 
-                  <Collapse
-                    in={handler.expanded && handler.expanded[`lists/${cat}`]}
-                  >
-                    {/* collection tracks */}
+                  <Collapse in={handler.expanded && handler.expanded[`lists/${cat}`]}> 
                     {playlists[cat].map((item) => (
-                      <CollectionItem searchText={searchText} group={playlists[cat]} handler={handler} item={item} handlePlay={handlePlay} selectedItem={selectedItem} 
-                        key={item.tubekey} /> 
-                      
+                      <CollectionItem 
+                        searchText={searchText} 
+                        group={playlists[cat]} 
+                        handler={handler} 
+                        item={item} 
+                        handlePlay={handlePlay} 
+                        selectedItem={selectedItem} 
+                        key={item.tubekey} />  
                     ))}
                   </Collapse>
 
 
                 </Stack>
-              ))}
-
-
-
-
+              ))} 
             </Collapse>
 
 
@@ -230,13 +216,11 @@ const TubeBrowser = ({ handler, small, searchText }) => {
               <Nowrap small muted > {formatBytesToKB(diskUsed)} of 5 MB used</Nowrap>
               <LinearProgress variant="determinate" value={diskUsed / 500000} />
             </Stack>
-{/* {diskUsed / 500} */}
+ 
            
 
         </Stack>
-        <pre>
-    {JSON.stringify(handler.dynamoItems,0,2)}
-    </pre>
+  
       </Layout>
     </Drawer>
   );
@@ -244,9 +228,13 @@ const TubeBrowser = ({ handler, small, searchText }) => {
 TubeBrowser.defaultProps = {};
 export default TubeBrowser;
 
-const Collection = ({ 
+
+
+
+
+const CategoryNode = ({ 
   groups, 
-  groupKey, 
+  groupKey, // Albums, Artists, etc
   handler, 
   searchText, 
   handlePlay,
@@ -254,14 +242,25 @@ const Collection = ({
   selectedItem
  }) => {
 
+  const isExpanded = handler.expanded && handler.expanded[groupKey];
+  const groupKeys = Object.keys(groups[groupKey]);
+  
+  const matchingMembers =  !!handler.filter && groupKeys.some(f => contains(f, handler.filter))
+  const matchingMemberKids = !!matchingMembers && groupKeys.some(f => {
+    const group = groups[groupKey][f]; 
+    return group.find(f => contains(f.title, handler.filter) || 
+      contains(f.artistName, handler.filter) || 
+      contains(f.collectionName, handler.filter)  ) 
+  })
 
-  if (!(handler.expanded && handler.expanded[groupKey])) {
+
+  if (!(isExpanded || matchingMembers || matchingMemberKids)) {
     return <i />
   } 
 
   const pageKey = groupKey + '_page';
   
-  const pages = getPagination(Object.keys(groups[groupKey]).sort(), {
+  const pages = getPagination(groupKeys.sort(), {
     page: handler[pageKey] || 1, 
     pageSize: 10,
   });
@@ -274,74 +273,106 @@ const Collection = ({
     });
   };
 
-  return (
 
-    <Collapse in={handler.expanded && handler.expanded[groupKey]}>
+
+
+
+  return (
+<>
+ 
+    <Collapse in={isExpanded || matchingMembers || matchingMemberKids}>
       {/* category collections */}
 
-
-      {pages.pageCount > 1  && <Pagination
-        count={Number(pages.pageCount)}
-        page={Number(pages.page)}
-        onChange={(a, b) =>
-          handlePage(b)
-        }
-      />}
-
-
-      {pages.visible
-      .map((groupItem) => (
-
-        <Stack sx={{ ml: 2 }}>
-          <Flex spacing={1}>
-            <TinyButton
-              icon="KeyboardArrowDown"
-              deg={
-                handler.expanded && handler.expanded[`${groupKey}/${groupItem}`]
-                  ? 0
-                  : 270
-              }
-            />
-            <Nowrap
-              small
-            
-              hover
-              onClick={() => handleExpand(`${groupKey}/${groupItem}`)}
-            >
-              {' '}
-              {groupItem}
-            </Nowrap>
-          </Flex>
-
-          <Collapse
-            in={handler.expanded && handler.expanded[`${groupKey}/${groupItem}`]}
-          >
-            {/* collection tracks */}
-            {handler.expanded && handler.expanded[`${groupKey}/${groupItem}`] && 
-            groups[groupKey][groupItem]
-            .sort(sorter('trackNumber'))
-            .map((item) => (
-              <CollectionItem 
-                searchText={searchText} 
-                group={groups[groupKey][groupItem]} 
-                handler={handler} 
-                item={item} 
-                caption={groupCaptions[groupKey]}
-                handlePlay={handlePlay} 
-                selectedItem={selectedItem} 
-                key={item.tubekey} /> 
-              
-            ))}
-          </Collapse>
+      {pages.pageCount > 1 && (
+        <CollapsiblePagination
+          pages={pages}
+          page={Number(pages.page)}
+          collapsed  
+          onChange={(_, b) =>
+            handlePage(b)
+          }
+        />
+      )} 
 
 
-        </Stack>
+      {pages.visible.map((groupItem) => ( 
+      <> 
+    
+      <CategoryMember 
+          handler={handler}  
+          searchText={searchText}  
+          groups={groups}  
+          groupKey={groupKey}  
+          handleExpand={handleExpand}  
+          handlePlay={handlePlay}  
+          selectedItem={selectedItem}  
+          groupItem={groupItem}
+        /> </> 
       ))}
 
 
-
-
     </Collapse>
+</>
+  )
+}
+
+
+
+const CategoryMember = ({ handler, searchText, groups, groupKey, handleExpand, handlePlay, selectedItem, groupItem }) => {
+
+  const expanded = handler.expanded && handler.expanded[`${groupKey}/${groupItem}`];
+
+  const matchingMemberKids = !!handler.filter && groups[groupKey][groupItem]
+        .some(f => contains(f.title, handler.filter) || 
+        contains(f.artistName, handler.filter) || 
+        contains(f.collectionName, handler.filter)  ) 
+
+
+  return (
+
+    <Stack sx={{ ml: 2 }}>
+    <Flex spacing={1}>
+      <TinyButton
+        icon="KeyboardArrowDown"
+        deg={
+          expanded
+            ? 0
+            : 270
+        }
+      />
+      <Nowrap
+        small
+      
+        hover
+        onClick={() => handleExpand(`${groupKey}/${groupItem}`)}
+      >
+        {' '}
+        {groupItem} 
+      </Nowrap>
+    </Flex>
+
+    <Collapse
+      in={expanded || matchingMemberKids}
+    >
+      {/* collection tracks */}
+      {(expanded || matchingMemberKids) && groups[groupKey][groupItem]
+      .sort(sorter('trackNumber'))
+      .map((item) => (
+        <CollectionItem 
+          searchText={searchText} 
+          group={groups[groupKey][groupItem]} 
+          handler={handler} 
+          item={item} 
+          caption={groupCaptions[groupKey]}
+          handlePlay={handlePlay} 
+          selectedItem={selectedItem} 
+          key={item.tubekey} /> 
+        
+      ))}
+    </Collapse>
+
+
+  </Stack>
 
   )
 }

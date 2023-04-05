@@ -139,13 +139,16 @@ const AudioPlayer = ({ handler, small }) => {
         <Nowrap>{handler.trackName}</Nowrap>
         <Nowrap small muted>{handler.collectionName}</Nowrap>
         <Nowrap small muted>{handler.artistName}</Nowrap>
-        <Flex onClick={() => handler.send({
+        <Flex>
+          <Switch size="small" checked={handler.repeat} />
+            {/* <TinyButton icon={handler.repeat ? "ReplayCircleFilled" : "Replay"}/>  */}
+          <Nowrap onClick={() => handler.send({
             type: 'TOGGLE',
             key: 'repeat'
-          })}>
-            <Switch size="small" checked={handler.repeat} />
-            {/* <TinyButton icon={handler.repeat ? "ReplayCircleFilled" : "Replay"}/>  */}
-          <Nowrap small muted bold={handler.repeat} hover>Continuous Play</Nowrap></Flex>
+          })} small muted bold={handler.repeat} hover>Continuous Play</Nowrap>
+          
+          <TinyButton icon="Close" onClick={() => handler.send('CLOSE')} />
+          </Flex>
       </Stack>
 
       {/* control buttons  */}

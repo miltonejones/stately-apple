@@ -196,7 +196,8 @@ initial: "idle",
     })),
     assignEntity: assign((_, event) => ({
       id: event.id,
-      lookupType: event.entity
+      lookupType: event.entity,
+      sortBy: event.order
     })),
     assignResults: assign((_, event) => ({
       results: event.data,
@@ -233,10 +234,13 @@ export const useApple = () => {
         return api.lookupMusic(context.id, context.lookupType);
       }
      },
-  }); 
-
+  });  
+  
   // helper function sets property from an INPUT element event
-  const setProp = (event) => {
+  const setProp = (event, value) => {
+    if (typeof event === 'string') {
+      return send({ type: "CHANGE", key: event, value})
+    }
     send({
       type: "CHANGE",
       key: event.target.name, value: event.target.value
@@ -259,7 +263,7 @@ export const useApple = () => {
     send({
       type: 'HEAR',
       result
-    })
+    });
   }); 
 
   const diagnosticProps = {
@@ -268,13 +272,12 @@ export const useApple = () => {
     send,
   };
 
-
-  const isIdle = ['idle', 'transcribe'].some(state.matches);
+  const isIdle = ['idle'].some(state.matches);
 
   return {
     state,
     send, 
-    setProp,
+    setProp, 
     searchText,
     isIdle,
     diagnosticProps,

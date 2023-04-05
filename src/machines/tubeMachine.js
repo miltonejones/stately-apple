@@ -86,33 +86,53 @@ const tubeMachine = createMachine(
         },
       },
 
-      lookup: {
-        description: "Perform YouTube search if item is not already pinned",
-        invoke: {
-          src: "execSearch",
-          onDone: [
-            {
-              target: "emit",
-              actions: "assignResponse",
-              description: "Assign response data to context",
-            },
-          ],
-          onError: [
-            {
-              target: "idle",
-              description: "Fail silently on error.",
-            },
-          ],
+    lookup: {
+      description: "Perform YouTube search if item is not already pinned",
+      entry: assign({batch: []}),
+      invoke: {
+        src: "execSearch",
+        onDone: [
+          {
+            target: "emit",
+            actions: "assignResponse",
+            description: "Assign response data to context",
+          },
+        ],
+        onError: [
+          {
+            target: "idle",
+            description: "Fail silently on error.",
+          },
+        ],
+      },
+      on: {
+        FIND: {
+          actions: "appendTrack",
+          description:
+            "when FIND is called while lookup is in progress, append the track to the batch.",
+        },
+        BATCH: {
+          actions: "appendBatch",
+          description:
+            "when BATCH is called while lookup is in progress, append the tracks to the batch.",
         },
       },
+    },
+
+ 
       emit: {
-        description: "Emit search responses to caller.",
+        description: "Emit search responses to calling component and return to idle state.",
         invoke: {
           src: "emitResponse",
           onDone: [
             {
               target: "idle",
+              cond: "emptyBatch",
               description: "Return to idle mode after search",
+            },
+            {
+              target: "batch_lookup",
+              description: "If there is a batch pending, move to batch_lookup",
             },
           ],
         },
@@ -261,6 +281,18 @@ const tubeMachine = createMachine(
       },
   
   
+      closing: {
+        description: "send close event to calling component",
+        invoke: {
+          src: "emitClose",
+          onDone: [
+            {
+              target: "idle",
+              description: "Return to idle after closing window",
+            },
+          ],
+        },
+      },
 
     },
 
@@ -296,7 +328,7 @@ const tubeMachine = createMachine(
           description: "Play next or previous track in a track list",
         },
         {
-          target: ".idle",
+          target: ".closing",
           description:
             "If no more items in the batch, clear and return to idle.",
           actions: ["clearBatch", "clearResponses"],
@@ -331,6 +363,7 @@ const tubeMachine = createMachine(
         return !context.pins.some((f) => f.param === event.param);
       },
       moreBatch: (context) => context.batch_index < context.batch.length,
+      emptyBatch: context => !context.batch?.length
     },
     actions: {
       assignPinChange: assign((context, event) => {
@@ -355,6 +388,7 @@ const tubeMachine = createMachine(
         response: null,
         pin: null,
         track: {},
+        open: false
       })),
       assignPin: assign((context, event) => {
         const { response } = context;
@@ -548,7 +582,7 @@ const tubeMachine = createMachine(
         batch: null,
         param: null,
         items: null,
-        pin: null,
+        pin: null, 
         batch_progress: 0,
       }),
       removeUser: assign((_, event) => ({
@@ -581,16 +615,20 @@ const tubeMachine = createMachine(
         dynamoItems: event.data
       })),
       initBatch: assign({
-        batch_index: 0,
+        batch_index: 0,  
       }),
     },
   }
 );
-export const useTube = (onChange) => {
+export const useTube = (onChange, onClose) => {
   const [state, send] = useMachine(tubeMachine, {
     services: {
       userSignOut: async () => {
         return await Auth.signOut();
+      },
+      
+      emitClose: async () => {
+        onClose && onClose();
       },
 
       identifyUser: async () => {

@@ -114,8 +114,8 @@ const AppBar = ({ handler, tube, small }) => {
               </IconButton>}
 
               endIcon={
-                <Flex spacing={1}>
-                  <IconButton>
+                <Flex spacing={1} >
+                  <IconButton color={isListening ? "error" : "inherit"}>
                     <TextIcon
                       onClick={() =>
                         handler.send(isListening ? 'STOP' : 'SPEAK')

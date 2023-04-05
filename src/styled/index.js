@@ -1,3 +1,4 @@
+import CollapsiblePagination from './CollapsiblePagination';
 import FlexMenu from './FlexMenu';
 import Tooltag from './Tooltag';
 import ConfirmPop from './ConfirmPop';
@@ -15,6 +16,7 @@ import Nowrap from './Nowrap';
  
 
 export {
+  CollapsiblePagination,
   FlexMenu,
   Tooltag,
   ConfirmPop,
