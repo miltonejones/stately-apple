@@ -39,6 +39,7 @@ const tubeMachine = createMachine(
       idle: {
         description:
           "Machine waits for searches after updating context from storage",
+        entry: "setContextMessage",
         initial: "reload",
         states: {
           reload: {
@@ -88,7 +89,7 @@ const tubeMachine = createMachine(
 
     lookup: {
       description: "Perform YouTube search if item is not already pinned",
-      entry: assign({batch: []}),
+      entry: [assign({batch: []}), "setContextMessage"],
       invoke: {
         src: "execSearch",
         onDone: [
@@ -166,6 +167,7 @@ const tubeMachine = createMachine(
               },
               exec: {
                 description: "Execute the search against the API for this item",
+                entry: "setContextMessage",
                 invoke: {
                   src: "execSearch",
                   onDone: [
@@ -190,6 +192,7 @@ const tubeMachine = createMachine(
           find_next: {
             description:
               "Move to next item in the list if there are more items in the batch",
+            entry: "setContextMessage",
             invoke: {
               src: "dynamoPersist",
               onDone: [
@@ -208,11 +211,29 @@ const tubeMachine = createMachine(
           },
         },
         on: {
-          FIND: {
-            actions: "appendTrack",
-            description:
-              "when FIND is called while batch is in progress, append the track to the batch.",
+          NEXT: {
+            target: "play",
+            cond: "canProceed",
+            actions: "assignNext",
+            description: 'Play next or previous track in a track list"',
           },
+          GOTO: {
+            target: "play",
+            actions: "assignByIndex",
+            description: "Open a specific index in the items list",
+          },
+          FIND: [
+            {
+              cond: "isUnpinned",
+              actions: "appendTrack",
+              description:
+                "when FIND is called while batch is in progress, append the track to the batch.",
+            },
+            {
+              target: "play",
+              actions: ["assignParam", "assignPersistedResponse"],
+            },
+          ],
           BATCH: {
             actions: "appendBatch",
             description:
@@ -294,6 +315,18 @@ const tubeMachine = createMachine(
         },
       },
 
+      play: {
+        description:
+          "When FIND is called and the track is already pinned, emit the response for playing.",
+        invoke: {
+          src: "emitResponse",
+          onDone: [
+            {
+              target: "#youtube_search.batch_lookup.next",
+            },
+          ],
+        },
+      },
     },
 
     
@@ -392,8 +425,9 @@ const tubeMachine = createMachine(
       })),
       assignPin: assign((context, event) => {
         const { response } = context;
+        const exists = context.pins.some((f) => f.param === event.pin.param);
 
-        const pins = context.pins.some((f) => f.param === event.pin.param)
+        const pins = exists
           ? context.pins.filter((f) => f.param !== event.pin.param)
           : context.pins.concat(event.pin);
 
@@ -409,7 +443,7 @@ const tubeMachine = createMachine(
               page.href === event.pin.tubekey
                 ? {
                     ...page,
-                    pinned: 1,
+                    pinned: !exists,
                   }
                 : page
             ),
@@ -550,6 +584,12 @@ const tubeMachine = createMachine(
         };
       }),
 
+      setContextMessage: assign((context) => {
+        return {
+          message: context.currentState
+        }
+      }),
+
       assignNext: assign((context, event) => {
         const selectedItem = !context.response?.pages
           ? {}
@@ -581,7 +621,7 @@ const tubeMachine = createMachine(
       clearBatch: assign({
         batch: null,
         param: null,
-        items: null,
+        // items: null,
         pin: null, 
         batch_progress: 0,
       }),

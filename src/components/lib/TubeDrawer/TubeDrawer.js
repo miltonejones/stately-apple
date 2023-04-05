@@ -11,7 +11,7 @@ import {
   Avatar,
   LinearProgress,
   Collapse,
-  Popover
+  Popover, 
 } from '@mui/material';
 
 import { 
@@ -22,7 +22,8 @@ import {
   Spacer, 
   Flex, 
   Columns, 
-  TinyButton 
+  TinyButton ,
+  MessageSnackbar
 } from '../../../styled';
 
 import { useMenu } from '../../../machines';
@@ -318,6 +319,8 @@ const TubeDrawer = ({ small, menu, tube }) => {
 
 
   return (
+    <>
+
     <Video
       folded={tube.folded}
       small={busy}
@@ -339,9 +342,9 @@ const TubeDrawer = ({ small, menu, tube }) => {
         </Sizewrap>}
 
         <Spacer />
+        
         {!!ready && (
           <ConfirmPop
-
             onChange={(ok) => !!ok && tube.send({
               type: 'PIN',
               pin: {
@@ -356,7 +359,8 @@ const TubeDrawer = ({ small, menu, tube }) => {
         >
         
          <TinyButton  
-            deg={itemIsPinned ? 90 : 0}
+          color={itemIsPinned && !busy ? 'error' : 'inherit'} 
+            deg={itemIsPinned ? 270 : 0}
             icon="PushPin" 
           />
         </ConfirmPop>
@@ -397,13 +401,13 @@ const TubeDrawer = ({ small, menu, tube }) => {
       <Collapse in={!tube.folded}>
 
       {!no_access && <Layout small={small}>
-
+ 
         {!!response?.pages?.length && !busy && 
         (<Stack spacing={2}>
 
           <Embed small={small}
               onEnd={() => {
-               tube.state.matches('idle') &&  tube.send('NEXT');
+               tube.send('NEXT');
               }}
               src={selectedItem?.href}
             />
@@ -438,8 +442,17 @@ const TubeDrawer = ({ small, menu, tube }) => {
 
 
     </Video>
+
+<MessageSnackbar 
+  progress={tube.batch_progress}
+  message={tube.param}
+  caption={`${tube.batch_index + 1} of ${tube.batch?.length} bookmarks found.`}
+  open={tube.state.matches('batch_lookup')}
+  />
+    </>
   );
 };
+
 TubeDrawer.defaultProps = {};
 export default TubeDrawer;
 

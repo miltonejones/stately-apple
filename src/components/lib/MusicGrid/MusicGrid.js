@@ -168,7 +168,7 @@ const MusicGrid = ({ handler, tube, audio, small }) => {
   return (
     <Collapse in={!isIdle}>
       {!!results.length && (
-        <Flex sx={{ p: (t) => t.spacing(0, small ? 2 : 4) }} spacing={2}>
+        <Flex sx={{ p: (t) => t.spacing(0, small ? 2 : 4) }} spacing={1}>
           {!!handler.lookupType && !!songNode && (
             <Flex spacing={1}>
               
@@ -198,10 +198,10 @@ const MusicGrid = ({ handler, tube, audio, small }) => {
                     <>Tracks like</>"{handler.param}"
                   </Nowrap>
                 )}
-                <Nowrap sx={{ maxWidth: '40vw' }} small={small}>
+                {!(pages.pageCount > 1 && small) && <Nowrap sx={{ maxWidth: '40vw' }} small={small}>
                   {!small && <>{prefixLabel}:</>}{' '}
                   <b>{songNode.collectionName || songNode.artistName}</b>
-                </Nowrap>
+                </Nowrap>}
               </Breadcrumbs>
             </Flex>
           )}
@@ -443,7 +443,7 @@ const ListView = ({
           size="small"
         />
 
-        {!tube.batch && (
+        {!tube.batch?.length && (
           <ConfirmPop
             onChange={(ok) => !!ok && handleBatch()}
             message={`Add ${downloadableItems.length} items from  YouTube to your library?`}
@@ -456,7 +456,7 @@ const ListView = ({
             />
           </ConfirmPop>
         )}
-        {!!tube.batch && <CircularProgress size={18} />}
+        {!!tube.batch?.length && <CircularProgress size={18} />}
 
         {headerNames.map((key) => (
           <Flex spacing={1}>

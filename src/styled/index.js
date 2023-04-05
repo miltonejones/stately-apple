@@ -1,3 +1,5 @@
+import HiddenUpload from './HiddenUpload';
+import MessageSnackbar from './MessageSnackbar';
 import CollapsiblePagination from './CollapsiblePagination';
 import FlexMenu from './FlexMenu';
 import Tooltag from './Tooltag';
@@ -16,6 +18,8 @@ import Nowrap from './Nowrap';
  
 
 export {
+  HiddenUpload,
+  MessageSnackbar,
   CollapsiblePagination,
   FlexMenu,
   Tooltag,

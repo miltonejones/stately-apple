@@ -15,23 +15,26 @@ import {
   Flex,
   Spacer,  
   IconTextField,
-  CollapsiblePagination
+  CollapsiblePagination,
+  HiddenUpload
 } from '../../../styled';
 import { sorter } from '../../../util/sorter';
 import { getPagination } from '../../../util/getPagination';
 import { collatePins } from '../../../util/collatePins';
 import { contains } from '../../../util/contains';
+import { jsonLink } from '../../../util/jsonLink';
 
 const Layout = styled(Box)(({ small, theme }) => ({
   margin: theme.spacing(1, 2),
   width: small ? "80vw" : 400,
 }));
 
+const detailCaption = e => `${e.artistName} - ${e.collectionName}`;
 
 const groupCaptions = {
   Artists: e => e.collectionName,
   Albums: e => e.artistName,
-  Genres: e => `${e.artistName} - ${e.collectionName}`,
+  Genres: detailCaption,
 };
 
 const groupIcons = {
@@ -40,9 +43,21 @@ const groupIcons = {
   Genres: 'Sell',
 };
 
+const Nostack = styled(({ ...props }) => (
+  <Nowrap {...props} direction="row" />
+))(({ theme }) => ({
+  width: 300,
+  overflow: 'hidden',
+  [theme.breakpoints.down('md')]: {
+    width: 'calc(80vw - 80px)', 
+  },
+}));
+  
 
-const TubeBrowser = ({ handler, small, searchText }) => {
+const TubeBrowser = ({ handler, small, searchText: searchMethod }) => {
   // const menu = useMenu();
+
+
   const selectedItem = !handler.response?.pages
     ? {}
     : handler.response.pages[0];
@@ -60,6 +75,12 @@ const TubeBrowser = ({ handler, small, searchText }) => {
       value
     });
   };
+
+  const searchText = (param) => {
+    searchMethod(param);
+    handleClose(); 
+  }
+
   const handleExpand = (node) => {
     handler.send({
       type: 'CHANGE',
@@ -119,6 +140,10 @@ const TubeBrowser = ({ handler, small, searchText }) => {
         <TinyButton icon="YouTube" />
         <Nowrap small>Saved videos</Nowrap>
         <Spacer />
+
+        
+
+
           <TinyButton onClick={() => handleClose()} icon="Close" />
       </Flex>
 
@@ -199,6 +224,7 @@ const TubeBrowser = ({ handler, small, searchText }) => {
                         group={playlists[cat]} 
                         handler={handler} 
                         item={item} 
+                        caption={detailCaption}
                         handlePlay={handlePlay} 
                         selectedItem={selectedItem} 
                         key={item.tubekey} />  
@@ -214,7 +240,9 @@ const TubeBrowser = ({ handler, small, searchText }) => {
 
             <Stack sx={{mt: 4}}>
               <Nowrap small muted > {formatBytesToKB(diskUsed)} of 5 MB used</Nowrap>
-              <LinearProgress variant="determinate" value={diskUsed / 500000} />
+              <LinearProgress sx={{mb: 2}} variant="determinate" value={diskUsed / 500000} />
+              <Nowrap small><a download="data.json" href={jsonLink(handler.pins)}>Download bookmarks</a></Nowrap>
+              <HiddenUpload>Import bookmarks...</HiddenUpload>
             </Stack>
  
            
@@ -375,32 +403,42 @@ const CategoryMember = ({ handler, searchText, groups, groupKey, handleExpand, h
 
 
 
-const CollectionItem = ({ handler, caption, searchText, item, handlePlay, group, selectedItem }) => {
+const CollectionItem = ({
+  handler,
+  caption,
+  searchText,
+  item,
+  handlePlay,
+  group,
+  selectedItem,
+}) => {
 
-  return  <Flex sx={{ ml: 2 }} spacing={1}>
-  <Avatar
-    src={item.artworkUrl100}
-    alt={item.title}
-    sx={{ width: 32, height: 32 }}
-  />
-  <Stack>
-    <Nowrap
-      color={
-        selectedItem.href === item.tubekey
-          ? 'error'
-          : 'inherit'
-      }
-      bold={selectedItem.href === item.tubekey}
-      onClick={() => handlePlay(item, group)}
-      hover
-      small
-    >
-      {item.title} 
-    </Nowrap>
-    {!!caption && <Nowrap  hover onClick={() => searchText(item.artistName)} muted small>
-      {caption(item)}
-    </Nowrap>}
-  </Stack>
-</Flex>
+  return (
+    <Flex sx={{ ml: 2 }} spacing={1}>
+      <Avatar
+        src={item.artworkUrl100}
+        alt={item.title}
+        sx={{ width: 32, height: 32 }}
+      />
+      <Stack>
 
-}
+        <Nostack
+          color={selectedItem.href === item.tubekey ? 'error' : 'inherit'}
+          bold={selectedItem.href === item.tubekey}
+          onClick={() => handlePlay(item, group)} 
+          hover
+          small
+        >
+          {item.title}
+        </Nostack>
+
+        {!!caption && (
+          <Nostack hover onClick={() => searchText(item.artistName)} muted small>
+            {caption(item)}
+          </Nostack>
+        )}
+
+      </Stack>
+    </Flex>
+  );
+};
