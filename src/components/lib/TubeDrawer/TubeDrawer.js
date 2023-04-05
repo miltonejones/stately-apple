@@ -13,7 +13,18 @@ import {
   Collapse,
   Popover
 } from '@mui/material';
-import { Nowrap, FlexMenu, ConfirmPop,  Btn, Spacer, Flex, Columns, TinyButton } from '../../../styled';
+
+import { 
+  Nowrap, 
+  FlexMenu, 
+  ConfirmPop,  
+  Btn, 
+  Spacer, 
+  Flex, 
+  Columns, 
+  TinyButton 
+} from '../../../styled';
+
 import { useMenu } from '../../../machines';
 import { collatePins } from '../../../util/collatePins';
 import Login from '../Login/Login';
@@ -24,9 +35,10 @@ const BASE_WIDTH = 500;
 const PLAYER_WIDTH = BASE_WIDTH + 32;
 const PLAYER_HEIGHT = Math.floor(BASE_WIDTH * 0.7);
 const IFRAME_WIDTH = BASE_WIDTH - 40;
-const IFRAME_HEIGHT = Math.floor(IFRAME_WIDTH * 0.5625);
-//  width: small ? (window.innerWidth - 32) : IFRAME_WIDTH,
+const IFRAME_HEIGHT = Math.floor(IFRAME_WIDTH * 0.5625); 
 
+
+// responsive typography tag to control layout better 
 const Sizewrap = ({ children, size, offset = 0, mobile, ...props }) => {
   const baseWidth = mobile ? (window.innerWidth - 32) : IFRAME_WIDTH;
   const wrapWidth = baseWidth - offset;
@@ -37,8 +49,8 @@ const Sizewrap = ({ children, size, offset = 0, mobile, ...props }) => {
     }}>
     {children}
   </Nowrap>
-
 }
+
 
 
 const Layout = styled(Box)(({ theme, small }) => ({
@@ -385,7 +397,10 @@ const TubeDrawer = ({ small, menu, tube }) => {
       <Collapse in={!tube.folded}>
 
       {!no_access && <Layout small={small}>
-        {!!response?.pages?.length && !busy && (<Stack spacing={2}>
+
+        {!!response?.pages?.length && !busy && 
+        (<Stack spacing={2}>
+
           <Embed small={small}
               onEnd={() => {
                tube.state.matches('idle') &&  tube.send('NEXT');
@@ -393,28 +408,29 @@ const TubeDrawer = ({ small, menu, tube }) => {
               src={selectedItem?.href}
             />
 
-        {  !pin && tube.response?.pages?.length > 1 &&  <ResultList tube={tube}/>}
+          {!pin && tube.response?.pages?.length > 1 &&  <ResultList tube={tube}/>}  
 
-
-          {!!pin && <Flex sx={{maxWidth: BASE_WIDTH}} spacing={1}>
-
-            <Avatar src={pin.artworkUrl100} alt={pin.trackName} />
-            <Stack>
-             <Flex sx={{ maxWidth: BASE_WIDTH - 200}} spacing={1}>
-             <PlayList playlists={playlists} tube={tube} pinnedItem={pin} />
-              <Sizewrap mobile={small} offset={150}>{pin.trackName}</Sizewrap>
-             
-             </Flex>
-             <Sizewrap mobile={small} offset={120} small muted>{pin.collectionName}</Sizewrap>
-            </Stack>
-            <Spacer />
-            <Nowrap hover small>
-              ${pin.trackPrice}
-            </Nowrap>
-            <TinyButton icon="Launch" />
-          </Flex>}
+          {!!pin && (
+            <Flex sx={{maxWidth: BASE_WIDTH}} spacing={1}> 
+              <Avatar src={pin.artworkUrl100} alt={pin.trackName} />
+              <Stack>
+              <Flex sx={{ maxWidth: BASE_WIDTH - 200}} spacing={1}>
+              <PlayList playlists={playlists} tube={tube} pinnedItem={pin} />
+                <Sizewrap mobile={small} offset={150}>{pin.trackName}</Sizewrap>
+              
+              </Flex>
+              <Sizewrap mobile={small} offset={120} small muted>{pin.collectionName}</Sizewrap>
+              </Stack>
+              <Spacer />
+              <Nowrap hover small>
+                ${pin.trackPrice}
+              </Nowrap>
+              <TinyButton icon="Launch" />
+            </Flex>
+          )}
 
         </Stack>)}
+
       </Layout>}
       
 

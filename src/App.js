@@ -1,6 +1,6 @@
 import './App.css';
 import { useApple, useTube, useMenu, useAudio } from './machines';
-import { useTheme, useMediaQuery, LinearProgress } from '@mui/material';
+import { LinearProgress } from '@mui/material';
 
 import AudioPlayer from './components/lib/AudioPlayer/AudioPlayer';
 import MusicGrid from './components/lib/MusicGrid/MusicGrid';
@@ -18,9 +18,7 @@ Amplify.configure(awsExports);
 
 
 
-function App() {
-  const theme = useTheme();
-  const isSmallOrLess = useMediaQuery(theme.breakpoints.down('md'));
+function App() { 
 
   const tubeMenu = useMenu((val) => 
     // clear the video window when its closed
@@ -35,6 +33,9 @@ function App() {
 
   const apple = useApple();
   const audio = useAudio();
+
+  const { isMobileViewPort, isIdle, isListening, isSearching, hasListItems } = apple;
+
   return (
     <>
       {/* progress bar for batch import progress  */}
@@ -43,31 +44,31 @@ function App() {
       )}
 
       {/* homebar shows only when there are no search results  */}
-      {apple.isIdle && <HomeBar handler={apple} tube={tube} />} 
+      {isIdle && <HomeBar handler={apple} tube={tube} />} 
 
       {/* page doubles as home page and search results  */}
-      <div className={apple.isIdle ? 'App centered' : 'App'}>
+      <div className={isIdle ? 'App centered' : 'App'}>
 
         {/* search bar works on home page and becomes a toolbar when not idle  */}
-        <AppBar small={isSmallOrLess} tube={tube} handler={apple} />
+        <AppBar small={isMobileViewPort} tube={tube} handler={apple} />
 
         {/* show search results when present */}
-        {apple.state.matches('search') && (
-          <MusicGrid small={isSmallOrLess} tube={tube} handler={apple} audio={audio} />
+        {isSearching || (isListening && hasListItems) && (
+          <MusicGrid small={isMobileViewPort} tube={tube} handler={apple} audio={audio} />
         )}
 
         {/* itunes sample audio player  */}
-        <AudioPlayer small={isSmallOrLess} handler={audio} />
+        <AudioPlayer small={isMobileViewPort} handler={audio} />
       </div>
 
       {/* youtube video sidebar */}
-      <TubeBrowser small={isSmallOrLess} searchText={apple.searchText} handler={tube} />
+      <TubeBrowser small={isMobileViewPort} searchText={apple.searchText} handler={tube} />
 
       {/* youtube video player  */}
-      <TubeDrawer small={isSmallOrLess} menu={tubeMenu} tube={tube} />
+      <TubeDrawer small={isMobileViewPort} menu={tubeMenu} tube={tube} />
 
       {/* app footer  */}
-      <AppFooter small={isSmallOrLess} />
+      <AppFooter small={isMobileViewPort} />
     </>
   );
 }

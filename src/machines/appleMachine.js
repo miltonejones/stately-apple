@@ -1,6 +1,7 @@
 
 import { createMachine, assign } from 'xstate';
 import { useMachine } from "@xstate/react";
+import { useMediaQuery, useTheme } from '@mui/material';
 import  * as api  from '../connector';
 
 // add machine code
@@ -236,6 +237,10 @@ export const useApple = () => {
      },
   });  
   
+  const theme = useTheme();
+  const isMobileViewPort = useMediaQuery(theme.breakpoints.down('md'));
+
+
   // helper function sets property from an INPUT element event
   const setProp = (event, value) => {
     if (typeof event === 'string') {
@@ -273,13 +278,23 @@ export const useApple = () => {
   };
 
   const isIdle = ['idle'].some(state.matches);
+  const isListening = ['transcribe.listening'].some(state.matches);
+  const isSearching = state.matches('search');
+  const hasListItems = state.context.results?.length;
+
 
   return {
     state,
     send, 
+
     setProp, 
     searchText,
     isIdle,
+    isListening,
+    hasListItems,
+    isSearching,
+    isMobileViewPort,
+    
     diagnosticProps,
     ...state.context
   };

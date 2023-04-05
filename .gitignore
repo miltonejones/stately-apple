@@ -11,6 +11,11 @@
 # production
 /build
 
+*.test.js
+*.stories.js
+
+
+
 # misc
 .DS_Store
 .env.local
