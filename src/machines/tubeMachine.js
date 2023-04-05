@@ -345,6 +345,11 @@ const tubeMachine = createMachine(
         target: ".signout",
         description: "Invoke user sign out.",
       },
+      MERGE: {
+        target: ".dynamo",
+        actions: "mergeImporteditems",
+        description: "When items are merged from an imported JSON file",
+      },
       CLEAR: {
         actions: "clearResponses",
         description: "Remove response from memory",
@@ -423,6 +428,17 @@ const tubeMachine = createMachine(
         track: {},
         open: false
       })),
+      mergeImporteditems: assign((context, event) => {
+        const { items } = event;
+        
+        const pins = items.reduce((out, item) => {
+          if (out.some(f => f.trackId === item.trackId)) return out;
+          return out.concat(item);
+        }, context.pins)
+
+        return { pins }; 
+
+      }),
       assignPin: assign((context, event) => {
         const { response } = context;
         const exists = context.pins.some((f) => f.param === event.pin.param);
@@ -674,28 +690,7 @@ export const useTube = (onChange, onClose) => {
       identifyUser: async () => {
         return await Auth.currentAuthenticatedUser();
       },
-
-      initYT: async (context) => {
-        let player;
-        window.onYouTubeIframeAPIReady = () => {
-          player = new window.YT.Player("player", {
-            videoId: context.videoId,
-            events: {
-              onStateChange: onPlayerStateChange,
-            },
-          });
-        };
-        // This function is called when the player's state changes.
-        function onPlayerStateChange(event) {
-          if (event.data === window.YT.PlayerState.ENDED) {
-            // The video has finished playing.
-            alert("Video finished!");
-          }
-        }
-
-        onChange && onChange(context.response);
-        return player;
-      },
+ 
       emitResponse: async (context) => {
         onChange && onChange(context.response);
       },

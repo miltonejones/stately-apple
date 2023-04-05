@@ -46,7 +46,7 @@ const AppBar = ({ handler, tube, small }) => {
       <Layout small={isMobileViewPort} isIdle={isIdle} data-testid="test-for-AppBar">
         <Flex spacing={isIdle ? 0.5 : 0} sx={{ p: isMobileViewPort ? 0 : 1 }}>
  
-          {!isIdle && <Badge max={1000} color="success" badgeContent={tube.pins?.length}><IconButton  onClick={handleBrowse}>
+          {!isIdle && <Badge max={10000} color="success" badgeContent={tube.pins?.length}><IconButton  onClick={handleBrowse}>
               <TextIcon icon="Menu" />
             </IconButton></Badge>}
 

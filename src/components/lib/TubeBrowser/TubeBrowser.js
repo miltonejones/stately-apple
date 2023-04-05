@@ -5,6 +5,7 @@ import {
   Stack, 
   Avatar,
   Collapse,
+  Badge, 
   Box,
   LinearProgress, 
 } from '@mui/material';
@@ -134,11 +135,11 @@ const TubeBrowser = ({ handler, small, searchText: searchMethod }) => {
       <Flex
         spacing={1}
         sx={{ 
-          p: 1,
+          p: theme => theme.spacing(2,1),
         }}
       >
         <TinyButton icon="YouTube" />
-        <Nowrap small>Saved videos</Nowrap>
+        <Badge max={10000} color="success" badgeContent={handler.pins?.length}><Nowrap small>Saved videos</Nowrap></Badge>
         <Spacer />
 
         
@@ -242,7 +243,12 @@ const TubeBrowser = ({ handler, small, searchText: searchMethod }) => {
               <Nowrap small muted > {formatBytesToKB(diskUsed)} of 5 MB used</Nowrap>
               <LinearProgress sx={{mb: 2}} variant="determinate" value={diskUsed / 500000} />
               <Nowrap small><a download="data.json" href={jsonLink(handler.pins)}>Download bookmarks</a></Nowrap>
-              <HiddenUpload>Import bookmarks...</HiddenUpload>
+              <HiddenUpload onChange={obj => {
+                handler.send({
+                  type: "MERGE",
+                  items: obj
+                })
+              }}>Import bookmarks...</HiddenUpload>
             </Stack>
  
            
