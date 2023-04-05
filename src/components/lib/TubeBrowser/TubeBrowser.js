@@ -265,30 +265,26 @@ const CategoryNode = ({
     pageSize: 10,
   });
 
-  const handlePage = (value) => {
+  const handlePage = (value) => { 
     handler.send({
       type: 'CHANGE',
       key: pageKey,
       value
     });
-  };
-
-
-
-
+  }; 
 
   return (
 <>
  
     <Collapse in={isExpanded || matchingMembers || matchingMemberKids}>
       {/* category collections */}
-
+ 
       {pages.pageCount > 1 && (
         <CollapsiblePagination
           pages={pages}
           page={Number(pages.page)}
           collapsed  
-          onChange={(_, b) =>
+          onChange={(b) =>
             handlePage(b)
           }
         />
@@ -366,7 +362,7 @@ const CategoryMember = ({ handler, searchText, groups, groupKey, handleExpand, h
           caption={groupCaptions[groupKey]}
           handlePlay={handlePlay} 
           selectedItem={selectedItem} 
-          key={item.tubekey} /> 
+          key={item.trackId} /> 
         
       ))}
     </Collapse>

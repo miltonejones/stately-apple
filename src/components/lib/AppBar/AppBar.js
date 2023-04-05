@@ -1,7 +1,5 @@
 import React from 'react';
-import { Badge, styled, Stack, IconButton, LinearProgress,
-  useTheme, useMediaQuery
-} from '@mui/material';
+import { Badge, styled, Stack, IconButton, LinearProgress } from '@mui/material';
 import {
   Nowrap,
   Flex,
@@ -23,8 +21,8 @@ const Layout = styled(({ ...props }) => (
 }));
 
 const AppBar = ({ handler, tube, small }) => {
-  const theme = useTheme();
-  const isSmallOrLess = useMediaQuery(theme.breakpoints.down('md'));
+  // const theme = useTheme();
+  const { isMobileViewPort } = handler  ;
   const colors = ['info', 'error', 'success', 'warning'];
   const { isIdle } = handler;
   const isBusy = ['search.lookup', 'search.list.entity'].some(handler.state.matches);
@@ -37,16 +35,16 @@ const AppBar = ({ handler, tube, small }) => {
       })
     };
 
-    const lgFieldWidth = isSmallOrLess ? '80vw' : '560px';
-    const smFieldWidth = isSmallOrLess ? '50vw' : '440px';
-    const headerTag = isSmallOrLess ? 'h3' : 'h1';
-    const smallTag = isSmallOrLess ? 'h6' : 'h5';
-    const iconSize = isSmallOrLess ? 48 : 76;
+    const lgFieldWidth = isMobileViewPort ? '80vw' : '560px';
+    const smFieldWidth = isMobileViewPort ? '50vw' : '440px';
+    const headerTag = isMobileViewPort ? 'h3' : 'h1';
+    const smallTag = isMobileViewPort ? 'h6' : 'h5';
+    const iconSize = isMobileViewPort ? 48 : 76;
   return (
     <>
       {isBusy && <LinearProgress />}
-      <Layout small={isSmallOrLess} isIdle={isIdle} data-testid="test-for-AppBar">
-        <Flex spacing={isIdle ? 0.5 : 0} sx={{ p: isSmallOrLess ? 0 : 1 }}>
+      <Layout small={isMobileViewPort} isIdle={isIdle} data-testid="test-for-AppBar">
+        <Flex spacing={isIdle ? 0.5 : 0} sx={{ p: isMobileViewPort ? 0 : 1 }}>
  
           {!isIdle && <Badge max={1000} color="success" badgeContent={tube.pins?.length}><IconButton  onClick={handleBrowse}>
               <TextIcon icon="Menu" />
@@ -109,7 +107,7 @@ const AppBar = ({ handler, tube, small }) => {
                 </>
                 ) : ""
               }
-              startIcon={isSmallOrLess ? null : <IconButton>
+              startIcon={isMobileViewPort ? null : <IconButton>
                 <TextIcon icon={"MusicNote"} />
               </IconButton>}
 
@@ -137,7 +135,7 @@ const AppBar = ({ handler, tube, small }) => {
           </Flex>
         </form>
 
-       {!isSmallOrLess && <MediaMenu handler={handler} />}
+       {!isMobileViewPort && <MediaMenu handler={handler} />}
       </Layout>
     </>
   );

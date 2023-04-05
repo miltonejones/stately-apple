@@ -53,7 +53,7 @@ function App() {
         <AppBar small={isMobileViewPort} tube={tube} handler={apple} />
 
         {/* show search results when present */}
-        {isSearching || (isListening && hasListItems) && (
+        {(isSearching || (isListening && hasListItems)) && (
           <MusicGrid small={isMobileViewPort} tube={tube} handler={apple} audio={audio} />
         )}
 
