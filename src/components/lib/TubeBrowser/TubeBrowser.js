@@ -10,6 +10,7 @@ import {
   MenuItem,
   Divider,
   LinearProgress, 
+  Link
 } from '@mui/material';
 import { useMenu } from '../../../machines';
 import {
@@ -69,7 +70,8 @@ const TubeListViewMember = ({
   handlePlay,
   selectedItem,
   groupItem ,
-  playlists
+  playlists,
+  handleCategory
 }) => {
 
     const pageKey = groupKey + groupItem + '_page';
@@ -79,9 +81,17 @@ const TubeListViewMember = ({
     const memberKey = `${groupKey}/${groupItem}`;
     const memberIsSelected = handler.expanded && handler.expanded[memberKey]; 
 
+    const handleNavigate = (type, name) => {
+      handleCategory(type);
+      handleExpand(`${type}/${name}`, type)
+    }
+
     const itemProps = {
       handler,
-      caption: detailCaption,
+      caption: e => <>
+      <Link onClick={() => handleNavigate('Artists', e.artistName)}>{e.artistName}</Link>
+        {" - "}<Link onClick={() => handleNavigate(`Albums`, e.collectionName)}>{e.collectionName}</Link>
+      </>,
       group: categoryItems,
 
       searchText, 
@@ -113,7 +123,7 @@ const TubeListViewMember = ({
         />
       <Stack>
       <Nostack onClick={() => handleExpand(memberKey)} small hover>
-          {groupItem}
+          {groupItem} 
         </Nostack> 
         <Nostack small muted>
           {categoryItems.length} tracks
@@ -126,7 +136,7 @@ const TubeListViewMember = ({
     {!!memberIsSelected && (
       <>
 
-     <Flex spacing={1}>
+     <Flex spacing={1} sx={{mb: 2}}>
       <TinyButton icon="ArrowBack" />
      <Nowrap 
         small hover
@@ -161,7 +171,7 @@ const TubeListViewMember = ({
 
 
       {pages.visible.map(item => <CategoryItem 
-      playlists={playlists}
+        playlists={playlists}
         key={item.trackId} 
         item={item} 
         {...itemProps}
@@ -182,7 +192,8 @@ const TubeListViewNode = ({
     handlePlay,
     selectedItem,
     handleExpand,
-    playlists
+    playlists,
+    handleCategory
   }) => {
   // const isExpanded = handler.expanded && handler.expanded[groupKey];
   const groupKeys = Object.keys(groups[groupKey]);
@@ -204,7 +215,7 @@ const TubeListViewNode = ({
 
   return (
     <Stack sx={{ mt: 1}}>
-
+ 
       {pages.pageCount > 1 && !handler.expanded && (
         <CollapsiblePagination
           pages={pages}
@@ -222,6 +233,7 @@ const TubeListViewNode = ({
       <TubeListViewMember 
           handleExpand={handleExpand}  
           playlists={playlists}
+          handleCategory={handleCategory}
           handler={handler}  
           searchText={searchText}  
           groups={groups}  
@@ -248,7 +260,8 @@ const TubeListView = (props) => {
     selectedItem,
     searchText,
     handleExpand,
-    playlists
+    playlists,
+    small
     // groups,
   } = props;
 
@@ -277,7 +290,7 @@ const TubeListView = (props) => {
  
 
   return (
-    <Layout>
+    <Layout small={small}>
 
       <Collapse in={!handler.expanded}>
         
@@ -289,6 +302,8 @@ const TubeListView = (props) => {
  
       </Collapse>
 
+      {/* {JSON.stringify(handler.expanded)}
+{JSON.stringify(handler.category)} */}
 
       {!!handler.category && <TubeListViewNode playlists={playlists} {...props} 
         groupKey={handler.category} />}
@@ -360,8 +375,11 @@ const TubeBrowser = (props) => {
     handleChange('expanded', false); 
   }; 
   
-  const handleExpand = (node) => {
-    handleChange('expanded', {
+  const handleExpand = (node, exclusive) => { 
+    handleChange('expanded', exclusive ? { 
+      [node]: true,
+      [exclusive]: true
+    } : {
       ...handler.expanded,
       [node]: !(handler.expanded && handler.expanded[node]),
     }); 
@@ -801,7 +819,7 @@ const CategoryItem = ({
         </Flex>
 
         {!!caption && (
-          <Nostack hover onClick={() => searchText(artistName)} muted small>
+          <Nostack muted small>
             {caption(item)}
           </Nostack>
         )}
