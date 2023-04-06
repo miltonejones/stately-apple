@@ -59,3 +59,8 @@ body {
     transform: rotate(360deg);
   }
 }
+
+p {
+  margin: 0 !important;
+  padding: 0 !important;
+}

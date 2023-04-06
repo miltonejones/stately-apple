@@ -215,7 +215,7 @@ const TubeList = ({ tube, selectedItem }) => {
   );
 };
 
-const PlayList = ({ tube, playlists, pinnedItem }) => {
+export const PlayListMenu = ({ tube, playlists, pinnedItem }) => {
   // const { playlists = {}} = tube;
   const listNames = Object.keys(playlists);
 
@@ -287,7 +287,7 @@ const PlayList = ({ tube, playlists, pinnedItem }) => {
           label="New Playlist"
 
         />
-        <Button  variant="contained" >add</Button>
+        <Button disabled={!menu.listparam}  variant="contained" >add</Button>
         
         </Flex>
         </form>
@@ -419,7 +419,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
               <Avatar src={pin.artworkUrl100} alt={pin.trackName} />
               <Stack>
               <Flex sx={{ maxWidth: BASE_WIDTH - 200}} spacing={1}>
-              <PlayList playlists={playlists} tube={tube} pinnedItem={pin} />
+              <PlayListMenu playlists={playlists} tube={tube} pinnedItem={pin} />
                 <Sizewrap mobile={small} offset={150}>{pin.trackName}</Sizewrap>
               
               </Flex>

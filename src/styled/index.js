@@ -1,3 +1,4 @@
+import PillMenu from './PillMenu';
 import HiddenUpload from './HiddenUpload';
 import MessageSnackbar from './MessageSnackbar';
 import CollapsiblePagination from './CollapsiblePagination';
@@ -18,6 +19,7 @@ import Nowrap from './Nowrap';
  
 
 export {
+  PillMenu,
   HiddenUpload,
   MessageSnackbar,
   CollapsiblePagination,

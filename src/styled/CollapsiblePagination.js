@@ -6,9 +6,16 @@ const CollapsiblePagination = ({ pages, page, collapsed, onChange }) => {
   if (collapsed) {
     return (
       <TablePagination
+      component="div"
         sx={{
+          display: 'inline-block',
           padding: 0,
           borderBottom: 0,
+          '& .MuiTablePagination-displayedRows': {
+            padding: 0,
+            margin: 0,
+            borderBottom: 0,
+          }
         }}
         count={Number(pages.itemCount)}
         page={page - 1}
