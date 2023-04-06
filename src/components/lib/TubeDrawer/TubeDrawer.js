@@ -234,8 +234,7 @@ export const PlayListMenu = ({ tube, playlists, pinnedItem }) => {
 
 
   const menu = useMenu(listname => !!listname && handleAdd(listname))
-
-  if (!tube.items) return <i />
+ 
 
   return <>
   <TinyButton onClick={menu.handleClick}
