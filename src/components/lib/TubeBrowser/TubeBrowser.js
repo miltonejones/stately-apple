@@ -57,7 +57,7 @@ const Nostack = styled(({ ...props }) => (
   width: 300 - offset,
   overflow: 'hidden',
   [theme.breakpoints.down('md')]: {
-    width: 'calc(80vw - 80px)', 
+    width: 'calc(80vw - 120px)', 
   },
 }));
 
@@ -71,7 +71,8 @@ const TubeListViewMember = ({
   selectedItem,
   groupItem ,
   playlists,
-  handleCategory
+  handleCategory,
+  selected
 }) => {
 
     const pageKey = groupKey + groupItem + '_page';
@@ -79,7 +80,7 @@ const TubeListViewMember = ({
     const { artworkUrl100, title } = categoryItems[0];
 
     const memberKey = `${groupKey}/${groupItem}`;
-    const memberIsSelected = handler.expanded && handler.expanded[memberKey]; 
+    // const memberIsSelected = handler.expanded && handler.expanded[memberKey]; 
 
     const handleNavigate = (type, name) => {
       handleCategory(type);
@@ -109,7 +110,10 @@ const TubeListViewMember = ({
   
     const expandedKey = !handler.expanded 
     ? ""
-    : Object.keys(handler.expanded)[0]
+    : Object.keys(handler.expanded)[0];
+
+    // eslint-disable-next-line 
+    const [ _, categoryName] = expandedKey.split('/')
 
     return <>
     
@@ -133,7 +137,7 @@ const TubeListViewMember = ({
 
     </Collapse>
  
-    {!!memberIsSelected && (
+    {!!selected && (
       <>
 
      <Flex spacing={1} sx={{mb: 2}}>
@@ -147,7 +151,7 @@ const TubeListViewMember = ({
             value: false
           });
       }}>
-      {expandedKey}
+      {categoryName}
       </Nowrap>
 
 
@@ -213,6 +217,25 @@ const TubeListViewNode = ({
     });
   }; 
 
+  
+  const expandedKey = !handler.expanded 
+  ? ""
+  : Object.keys(handler.expanded)[0]
+  const [ categoryType, categoryName] = expandedKey.split('/')
+
+  const memberProps = {
+
+    handleExpand,  
+    playlists,
+    handleCategory,
+    handler,  
+    searchText,  
+    groups,   
+    handlePlay,  
+    selectedItem,  
+
+  }
+
   return (
     <Stack sx={{ mt: 1}}>
  
@@ -231,20 +254,22 @@ const TubeListViewNode = ({
       <> 
     
       <TubeListViewMember 
-          handleExpand={handleExpand}  
-          playlists={playlists}
-          handleCategory={handleCategory}
-          handler={handler}  
-          searchText={searchText}  
-          groups={groups}  
-          groupKey={groupKey}  
-          handlePlay={handlePlay}  
-          selectedItem={selectedItem}  
-          groupItem={groupItem}
+           {...memberProps}
+           groupItem={groupItem}
+           groupKey={groupKey}
 
         /> </> 
       ))}
+ 
+    {!!handler.expanded && <TubeListViewMember 
+        {...memberProps}
+        selected
+        groupItem={categoryName}
+        groupKey={categoryType}
+        />}
 
+ 
+ 
     </Stack>
   )
 }

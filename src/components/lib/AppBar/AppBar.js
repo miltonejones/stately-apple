@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge, styled, Stack, IconButton, LinearProgress } from '@mui/material';
+import { Badge, styled, Stack, Box, IconButton, LinearProgress } from '@mui/material';
 import {
   Nowrap,
   Flex,
@@ -10,6 +10,7 @@ import {
   
 } from '../../../styled';
 import MediaMenu from '../MediaMenu/MediaMenu';
+import Login from '../Login/Login';
 
 const Layout = styled(({ ...props }) => (
   <Stack {...props} spacing={props.isIdle ? 2 : 0} direction={props.isIdle ? 'column' : 'row'} />
@@ -17,6 +18,7 @@ const Layout = styled(({ ...props }) => (
   backgroundColor: theme.palette.common.white, //isIdle ? theme.palette.common.white : theme.palette.grey[200]
   padding: small ? theme.spacing(1) : theme.spacing(1, 3),
   marginBottom: small ? 0 : theme.spacing(1), 
+  alignItemms: 'center' 
   // border: 'solid 1px green'
 }));
 
@@ -36,7 +38,7 @@ const AppBar = ({ handler, tube, small }) => {
     };
 
     const lgFieldWidth = isMobileViewPort ? '80vw' : '560px';
-    const smFieldWidth = isMobileViewPort ? '50vw' : '440px';
+    const smFieldWidth = isMobileViewPort ? '40vw' : '440px';
     const headerTag = isMobileViewPort ? 'h3' : 'h1';
     const smallTag = isMobileViewPort ? 'h6' : 'h5';
     const iconSize = isMobileViewPort ? 48 : 76;
@@ -136,6 +138,9 @@ const AppBar = ({ handler, tube, small }) => {
         </form>
 
        {!isMobileViewPort && <MediaMenu handler={handler} />}
+      {!isIdle && <Box sx={{mt:1}}>
+       <Login />
+       </Box>}
       </Layout>
     </>
   );

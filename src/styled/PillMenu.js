@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Collapse } from '@mui/material';
+import { Box, Collapse } from '@mui/material';
 import Nowrap from './Nowrap';
 import Pill from './Pill';
 import Flex from './Flex';
@@ -8,20 +7,23 @@ import TinyButton from './TinyButton';
 
 const PillMenu = ({ options, value, onClick }) => {
   return (
-    <Flex spacing={1}>
-      {!!value && <TinyButton icon="Close" onClick={() => onClick("")} />}
-      {options.map(option => <Collapse
-        orientation="horizontal"
-      in={!value || value === option}
-      >
-        <Pill onClick={() => onClick(option)}
-        active={value === option}>
-       <Nowrap hover small>{option}</Nowrap>
-      </Pill>
-      
-      </Collapse>)}
+    <Flex spacing={!!value ? 0 : 1}>
+      {!!value && (
+        <Box sx={{ mr: 1 }}>
+          <TinyButton icon="Close" onClick={() => onClick('')} />
+        </Box>
+      )}
+      {options.map((option) => (
+        <Collapse orientation="horizontal" in={!value || value === option}>
+          <Pill onClick={() => onClick(option)} active={value === option}>
+            <Nowrap hover tiny>
+              {option}
+            </Nowrap>
+          </Pill>
+        </Collapse>
+      ))}
     </Flex>
-  )
-}
+  );
+};
 
 export default PillMenu;

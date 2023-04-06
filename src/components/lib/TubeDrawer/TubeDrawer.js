@@ -384,15 +384,15 @@ const TubeDrawer = ({ small, menu, tube }) => {
           <Nowrap small>You must be logged in to use this function.</Nowrap>
           <Nowrap small muted wrap>You can come back and try again after you log in..</Nowrap>
           <Flex sx={{ mt: 2}} spacing={1}>
-            <Btn onClick={() => {
+            {/* <Btn onClick={() => {
                 tube.send({
                   type: 'CHANGE',
                   key: "login",
                   value: true,
                 })
-            }} variant="contained" color="warning">Sign In</Btn>
+            }} variant="contained" color="warning">Sign In</Btn> */}
             <Btn onClick={() => tube.send('OK')}>Cancel</Btn>
-            {!!tube.login && <Login />}
+            <Login />
           </Flex>
 
         </Stack>}

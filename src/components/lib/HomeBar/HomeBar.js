@@ -1,11 +1,10 @@
 import React from 'react';
 import Login from '../Login/Login';
-import { Badge, Avatar  } from '@mui/material';
+import { Badge  } from '@mui/material';
 import {
   Nowrap,
   Flex,
-  Spacer, 
-  Btn, 
+  Spacer,  
 } from '../../../styled';
 
 
@@ -33,9 +32,9 @@ const HomeBar = ({ handler, tube }) => {
     </Nowrap>
   </Flex>
   <Spacer />
-
-  {!!handler.login && <Login />}
-
+<Login />
+ 
+{/* 
   {!!tube.user && (
     <Flex spacing={3}>
       <Nowrap hover onClick={() => {
@@ -44,8 +43,8 @@ const HomeBar = ({ handler, tube }) => {
       } } small>Sign Out</Nowrap>
       <Avatar>{tube.user.username.substr(0, 2).toUpperCase()}</Avatar>
     </Flex>
-  )}
-
+  )} */}
+{/* 
   {!tube.user && (
     <Btn
       variant="contained"
@@ -59,7 +58,7 @@ const HomeBar = ({ handler, tube }) => {
     >
       Sign Up
     </Btn>
-  )}
+  )} */}
 </Flex>
  );
 }

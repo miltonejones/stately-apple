@@ -6,15 +6,13 @@ const CollapsiblePagination = ({ pages, page, collapsed, onChange }) => {
   if (collapsed) {
     return (
       <TablePagination
-      component="div"
+        classes={{
+          toolbar: 'table-pagination-toolbar',
+          root: 'table-pagination-root'
+        }}
         sx={{
-          display: 'inline-block',
-          padding: 0,
-          borderBottom: 0,
-          '& .MuiTablePagination-displayedRows': {
-            padding: 0,
-            margin: 0,
-            borderBottom: 0,
+          '&.MuiTableCell-root': {
+            p: 0
           }
         }}
         count={Number(pages.itemCount)}

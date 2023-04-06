@@ -24,6 +24,18 @@ sup {
   color: white;
 }
 
+.table-pagination-toolbar  {
+  /* border: solid 1px red; */
+  padding: 0;
+  margin: 0;
+  min-height: 24px !important;
+  padding-left: 0 !important; 
+}
+
+.table-pagination-root  { 
+  border-bottom: none !important;
+}
+
 body {
   background-color: #ebebeb;
   margin: 0;
