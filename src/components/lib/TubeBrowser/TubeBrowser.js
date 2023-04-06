@@ -142,17 +142,17 @@ const TubeListViewMember = ({
     {!!selected && (
       <>
 
-     <Flex spacing={1} sx={{mb: 2}}>
-      <TinyButton icon="ArrowBack" />
-     <Nowrap 
-        small hover
+     <Flex
         onClick={() => {
           handler.send({
             type: 'CHANGE',
             key: 'expanded',
             value: false
           });
-      }}>
+      }} spacing={1} sx={{mb: 2}}>
+      <TinyButton icon="ArrowBack" />
+     <Nowrap 
+        small hover>
       {categoryName}
       </Nowrap>
 
@@ -177,7 +177,7 @@ const TubeListViewMember = ({
 
 
       {pages.visible.map(item => <CategoryItem 
-        playlists={playlists}
+        playlists={groups.Playlists}
         key={item.trackId} 
         item={item} 
         {...itemProps}
@@ -286,7 +286,8 @@ const TubeListView = (props) => {
     searchText,
     handleExpand,
     playlists,
-    small
+    small,
+    groups
     // groups,
   } = props;
  
@@ -346,7 +347,7 @@ const TubeListView = (props) => {
 
 
 
-     {pages.visible.map(item => <CategoryItem playlists={playlists} key={item.trackId} item={item} {...itemProps}/>)}
+     {pages.visible.map(item => <CategoryItem playlists={groups.Playlists} key={item.trackId} item={item} {...itemProps}/>)}
     
     
      </Stack>}
@@ -406,10 +407,10 @@ const TubeBrowser = (props) => {
     searchMethod(param);
     handleClose(); 
   }
-  const handlePlay = (track, items) => {
- 
+
+  const handlePlay = (track, items, queue) => {
     handler.send({
-      type: 'FIND',
+      type: queue ? 'QUEUE' : 'FIND',
       param: track.param,
       track,
       items
@@ -500,7 +501,7 @@ const TubeBrowser = (props) => {
       {handler.view !== 'list' && (
         <Layout small={small}>
           {groupKeys.map((key) => (
-            <Stack> 
+            <Stack>  
 
               <Flex spacing={1}>
                 <TinyButton icon={groupIcons[key]}  
@@ -513,18 +514,17 @@ const TubeBrowser = (props) => {
               </Flex>
               
               <CategoryNode 
-                groups={groups}
                 groupKey={key}
                 handler={handler}
+                groups={groups}
                 searchText={searchText}
                 handlePlay={handlePlay}
                 handleExpand={handleExpand}
                 selectedItem={selectedItem}
               />  
+
             </Stack>
-          ))}
-  
-            
+          ))} 
         </Layout>)}
 
         <Spacer />
@@ -693,7 +693,7 @@ const CategoryMember = ({
 
 
 
-const CategoryItemMenu = ({ handler, handleFind, item, handlePlay }) => {
+const CategoryItemMenu = ({ handler, handleFind, item, handleQueue, handlePlay }) => {
   const methods = {
     play: handlePlay,
     drop: () =>
@@ -702,6 +702,7 @@ const CategoryItemMenu = ({ handler, handleFind, item, handlePlay }) => {
         pin: item,
       }),
     find: handleFind,
+    next: handleQueue,
   };
   const menu = useMenu((action) => !!action && methods[action]());
 
@@ -715,6 +716,9 @@ const CategoryItemMenu = ({ handler, handleFind, item, handlePlay }) => {
       >
         <MenuItem onClick={menu.handleClose('play')}>
           Play {item.title}
+        </MenuItem>
+        <MenuItem onClick={menu.handleClose('next')}>
+          Play next
         </MenuItem>
         <MenuItem onClick={menu.handleClose('find')}>
           Find more by "{item.artistName}"
@@ -777,6 +781,7 @@ const CategoryItem = ({
           item={item}
           handleFind={() => searchText(artistName)}  
           handlePlay={() => handlePlay(item, group)}  
+          handleQueue={() => handlePlay(item, group, true)}  
            />
         </Flex>
 

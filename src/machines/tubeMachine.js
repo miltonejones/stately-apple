@@ -354,6 +354,10 @@ const tubeMachine = createMachine(
         actions: "clearResponses",
         description: "Remove response from memory",
       },
+      QUEUE: {
+        actions: "assignQueue",
+        description: "Add a track to the current playlist",
+      },
       CHANGE: {
         actions: "applyChanges",
         description: "Change any property values of the machine context.",
@@ -603,6 +607,22 @@ const tubeMachine = createMachine(
       setContextMessage: assign((context) => {
         return {
           message: context.currentState
+        }
+      }),
+
+      assignQueue: assign((context, event) => {
+        const { items } = context;
+        const selectedItem = !context.response?.pages
+          ? {}
+          : context.response.pages[0];
+        const selectedIndex = context.items
+          ?.map((item) => item.tubekey)
+          .indexOf(selectedItem?.href) + 1;
+
+        items.splice(selectedIndex, 0, event.track);
+
+        return {
+          items
         }
       }),
 

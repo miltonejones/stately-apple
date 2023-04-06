@@ -12,7 +12,8 @@ import {
   Btn, 
   FlexMenu,
   IconTextField,
-  TinyButton
+  TinyButton,
+  ConfirmPop
 } from '../../../styled';
   
 
@@ -128,9 +129,12 @@ const Login = (props) => {
 
 
   if (auth.state.matches('signed_in')) {
-    return  <Avatar 
-      onClick={() =>  auth.send('SIGNOUT')}
-      >{auth.user.username?.substr(0, 2).toUpperCase()}</Avatar>  
+    return  <ConfirmPop  onChange={(ok) => ok &&  auth.send('SIGNOUT')}
+      label="Confirm Logout"
+      message="Are you sure you want to sign out?"
+      ><Avatar 
+    
+      >{auth.user.username?.substr(0, 2).toUpperCase()}</Avatar></ConfirmPop>  
   }
  
  return (
