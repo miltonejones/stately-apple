@@ -43,12 +43,14 @@ const groupCaptions = {
   Artists: e => e.collectionName,
   Albums: e => e.artistName,
   Genres: detailCaption,
+  Playlists: detailCaption,
 };
 
 const groupIcons = {
   Artists: 'People',
   Albums: 'Album',
   Genres: 'Sell',
+  Playlists: 'QueueMusic',
 };
 
 const Nostack = styled(({ ...props }) => (
@@ -198,8 +200,7 @@ const TubeListViewNode = ({
     handleExpand,
     playlists,
     handleCategory
-  }) => {
-  // const isExpanded = handler.expanded && handler.expanded[groupKey];
+  }) => { 
   const groupKeys = Object.keys(groups[groupKey]);
   
   const pageKey = groupKey + '_page';
@@ -274,7 +275,6 @@ const TubeListViewNode = ({
   )
 }
 
-
 const TubeListView = (props) => {
   const { 
     pins, 
@@ -289,11 +289,7 @@ const TubeListView = (props) => {
     small
     // groups,
   } = props;
-
-  // const tracks = !handler.category 
-  //   ? pins 
-  //   : groups[handler.category]
-
+ 
 
   const pages = getPagination(pins, {
     page: handler.listPage || 1, 
@@ -326,9 +322,7 @@ const TubeListView = (props) => {
       />
  
       </Collapse>
-
-      {/* {JSON.stringify(handler.expanded)}
-{JSON.stringify(handler.category)} */}
+ 
 
       {!!handler.category && <TubeListViewNode playlists={playlists} {...props} 
         groupKey={handler.category} />}
@@ -360,9 +354,6 @@ const TubeListView = (props) => {
     </Layout>
   )
 }
-
-
-  
 
 const TubeBrowser = (props) => {
   // const menu = useMenu();
@@ -461,152 +452,98 @@ const TubeBrowser = (props) => {
   
   return (
     <Drawer anchor="left" onClose={handleClose} open={handler.browse}>
- 
-      {!handler.state.can('FIND') && <>The librarian is busy right now. Try again later.</>}
+      <Stack>
+        {!handler.state.can('FIND') && <>The librarian is busy right now. Try again later.</>}
 
-      {/* drawer toolbar */}
-      <Flex
-        spacing={1}
-        sx={{ 
-          p: theme => theme.spacing(2,1),
-        }}
-      >
-        <TinyButton icon="YouTube" />
-        <Badge max={10000} color="success" badgeContent={handler.pins?.length}><Nowrap small>Saved videos</Nowrap></Badge>
-
-
-        <Spacer /> 
-
-        <TinyButtonGroup
-            onChange={handleView }
-            value={handler.view || 'grid'}
-            values={['grid', 'list']}
-            buttons={['GridView', 'ViewList']}
-          />
-
-        <TinyButton onClick={() => handleClose()} icon="Close" />
-      </Flex>
-
-      {/* search box */}
-      <Flex sx={{ p: 1 }}>
-        <IconTextField 
-          endIcon={<TinyButton onClick={() => handleFilter("")} icon={!!handler.filter ? "Close" : "Search"} />}
-          value={handler.filter}
-          onChange={e => handleFilter(e.target.value)}
-          size="small"
-          label="Filter"
-          fullWidth
-          />
-      </Flex>
-
-    
- 
-      {/* collection groups */}
-
-      {handler.view === 'list' && <TubeListView       
-        {...props}
-        {...viewProps}
-      />}
-
-     {handler.view !== 'list' && <Layout small={small}>
-        {groupKeys.map((key) => (
-          <Stack> 
-
-            <Flex spacing={1}>
-              <TinyButton icon={groupIcons[key]}  
-                color={ handler.expanded && handler.expanded[key] ? "error" : "inherit"}
-              />
-              <Nowrap muted={!(handler.expanded && handler.expanded[key])} small hover 
-                  onClick={() => handleExpand(key)}>
-                {key}
-              </Nowrap>
-            </Flex>
-            
-            <CategoryNode 
-              groups={groups}
-              groupKey={key}
-              handler={handler}
-              searchText={searchText}
-              handlePlay={handlePlay}
-              handleExpand={handleExpand}
-              selectedItem={selectedItem}
-            />  
-          </Stack>
-        ))}
+        {/* drawer toolbar */}
+        <Flex
+          spacing={1}
+          sx={{ 
+            p: theme => theme.spacing(2,1),
+          }}
+        >
+          <TinyButton icon="YouTube" />
+          <Badge max={10000} color="success" badgeContent={handler.pins?.length}><Nowrap small>Saved videos</Nowrap></Badge>
 
 
-        <Stack>
+          <Spacer /> 
 
+          <TinyButtonGroup
+              onChange={handleView }
+              value={handler.view || 'grid'}
+              values={['grid', 'list']}
+              buttons={['AccountTree', 'ViewList']}
+            />
 
-          <Flex muted={!(handler.expanded && handler.expanded.lists)} spacing={1}>
-            <TinyButton icon="QueueMusic" />
-            <Nowrap small hover onClick={() => handleExpand("lists")}>
-              Playlists
-            </Nowrap>
-          </Flex>
+          <TinyButton onClick={() => handleClose()} icon="Close" />
+        </Flex>
 
-                    
-
-          <Collapse in={handler.expanded && handler.expanded.lists}>  
-              {Object.keys(playlists).map((cat) => (
-
-                <Stack sx={{ ml: 2 }}>
-
-                  <Flex spacing={1}>
-                    <TinyButton
-                      icon="KeyboardArrowDown"
-                      deg={
-                        handler.expanded && handler.expanded[`lists/${cat}`]
-                          ? 0
-                          : 270
-                      }
-                    />
-                    <Nowrap small hover onClick={() => handleExpand(`lists/${cat}`)}> 
-                      {cat}
-                    </Nowrap>
-                  </Flex>
-
-                  <Collapse in={handler.expanded && handler.expanded[`lists/${cat}`]}> 
-                    {playlists[cat].map((item) => (
-                      <CategoryItem 
-                        searchText={searchText} 
-                        group={playlists[cat]} 
-                        handler={handler} 
-                        item={item} 
-                        caption={detailCaption}
-                        handlePlay={handlePlay} 
-                        selectedItem={selectedItem} 
-                        key={item.tubekey} />  
-                    ))}
-                  </Collapse>
-
-
-                </Stack>
-              ))} 
-            </Collapse>
-
-
-
-            <Stack sx={{mt: 4}}>
-              <Nowrap small muted > {formatBytesToKB(diskUsed)} of 5 MB used</Nowrap>
-              <LinearProgress sx={{mb: 2}} variant="determinate" value={diskUsed / 500000} />
-              <Nowrap small><a download="data.json" href={jsonLink(handler.pins)}>Download bookmarks</a></Nowrap>
-              <HiddenUpload onChange={obj => {
-                handler.send({
-                  type: "MERGE",
-                  items: obj
-                })
-              }}>Import bookmarks...</HiddenUpload>
-            </Stack>
- 
-           
-
-        </Stack>
+        {/* search box */}
+        <Flex sx={{ p: 1 }}>
+          <IconTextField 
+            endIcon={<TinyButton onClick={() => handleFilter("")} icon={!!handler.filter ? "Close" : "Search"} />}
+            value={handler.filter}
+            onChange={e => handleFilter(e.target.value)}
+            size="small"
+            label="Filter"
+            fullWidth
+            />
+        </Flex>
   
-      </Layout>}
+        {/* collection groups */}
 
+        {handler.view === 'list' && <TubeListView       
+          {...props}
+          {...viewProps}
+        />}
 
-      
+      {handler.view !== 'list' && (
+        <Layout small={small}>
+          {groupKeys.map((key) => (
+            <Stack> 
+
+              <Flex spacing={1}>
+                <TinyButton icon={groupIcons[key]}  
+                  color={ handler.expanded && handler.expanded[key] ? "error" : "inherit"}
+                />
+                <Nowrap muted={!(handler.expanded && handler.expanded[key])} small hover 
+                    onClick={() => handleExpand(key)}>
+                  {key}
+                </Nowrap>
+              </Flex>
+              
+              <CategoryNode 
+                groups={groups}
+                groupKey={key}
+                handler={handler}
+                searchText={searchText}
+                handlePlay={handlePlay}
+                handleExpand={handleExpand}
+                selectedItem={selectedItem}
+              />  
+            </Stack>
+          ))}
+  
+            
+        </Layout>)}
+
+        <Spacer />
+
+        <Stack sx={{mt: 4, p: 2}}>
+          <Nowrap small muted > {formatBytesToKB(diskUsed)} of 5 MB used</Nowrap>
+          <LinearProgress sx={{mb: 2}} variant="determinate" value={diskUsed / 500000} />
+          {!!handler.user && <Nowrap small><a download={`${handler.user.username}-bookmarks.json`} 
+            title={`${handler.user.username}-boombot.json`}
+            href={jsonLink(handler.pins)}>Download bookmarks</a></Nowrap>}
+          <HiddenUpload onChange={obj => {
+            handler.send({
+              type: "MERGE",
+              items: obj
+            })
+          }}>Import bookmarks...</HiddenUpload>
+        </Stack>
+
+      </Stack> 
     </Drawer>
   );
 };

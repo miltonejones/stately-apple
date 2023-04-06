@@ -18,17 +18,23 @@ import {
 
 const LoginError = ({ handler }) => {
   const { error, stack } = handler;
-  const events = handler.state.nextEvents.filter(f => f !== 'CHANGE')
+  const events = handler.state.nextEvents.filter((f) => f !== 'CHANGE');
 
-  return <Stack sx={{ maxWidth: 240}}>
-  <Nowrap error>There was a problem with your sign in</Nowrap>
-  <Nowrap>{error}</Nowrap>
-    <Nowrap small>{stack}</Nowrap>
-    <Box wrap sx={{pt: 2}} spacing={1}>
-    {events.map(ev =>  <Btn variant="contained" onClick={() => handler.send(ev)}>{ev}</Btn>)}
-    </Box>
-  </Stack>
-}
+  return (
+    <Stack sx={{ maxWidth: 240 }}>
+      <Nowrap error>There was a problem with your sign in</Nowrap>
+      <Nowrap>{error}</Nowrap>
+      <Nowrap small>{stack}</Nowrap>
+      <Box wrap sx={{ pt: 2 }} spacing={1}>
+        {events.map((ev) => (
+          <Btn variant="contained" onClick={() => handler.send(ev)}>
+            {ev}
+          </Btn>
+        ))}
+      </Box>
+    </Stack>
+  );
+};
 
 
 const LoginForm = ({ handler, onClose, fields }) => {

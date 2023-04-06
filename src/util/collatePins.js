@@ -39,6 +39,10 @@ export const collatePins = pins => {
     return collated;
   }, {});
 
+  Object.assign(groups, {
+    Playlists: playlists
+  })
+
   return {
     pins,
     groups,
