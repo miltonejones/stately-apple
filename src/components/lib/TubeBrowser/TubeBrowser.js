@@ -20,10 +20,11 @@ import {
   TinyButtonGroup,
   Flex,
   FlexMenu,
+  Columns,
   Spacer,  
   IconTextField,
   CollapsiblePagination,
-  HiddenUpload
+  HiddenUpload, 
 } from '../../../styled';
 import { sorter } from '../../../util/sorter';
 import { getPagination } from '../../../util/getPagination';
@@ -31,11 +32,16 @@ import { collatePins } from '../../../util/collatePins';
 import { contains } from '../../../util/contains';
 import { jsonLink } from '../../../util/jsonLink';
 import { PlayListMenu } from '../TubeDrawer/TubeDrawer';
+import Login from '../Login/Login';
+
+const BrowserContext = React.createContext();
 
 const Layout = styled(Box)(({ small, theme }) => ({
   margin: theme.spacing(1, 2),
   width: small ? "80vw" : 400,
 }));
+
+const delimiter = '~';
 
 const detailCaption = e => `${e.artistName} - ${e.collectionName}`;
 
@@ -53,40 +59,82 @@ const groupIcons = {
   Playlists: 'QueueMusic',
 };
 
-const Nostack = styled(({ ...props }) => (
-  <Nowrap {...props} />
-))(({ theme, offset = 0 }) => ({
-  width: 300 - offset,
-  overflow: 'hidden',
-  [theme.breakpoints.down('md')]: {
-    width: 'calc(80vw - 120px)', 
-  },
-}));
+const Nostack = styled(({ ...props }) => <Nowrap {...props} />)(
+  ({ theme, offset = 0 }) => ({
+    width: 300 - offset,
+    overflow: 'hidden',
+    [theme.breakpoints.down('md')]: {
+      width: 'calc(80vw - 120px)',
+    },
+  })
+);
+
+
+const useTubePagination = () => {
+  const {    
+    handler,   
+    groups,
+    pageSize
+  } = React.useContext(BrowserContext);
+
+  const groupKey = handler.category; 
+  const groupKeys = !groupKey ? [] : Object.keys(groups[groupKey]);
+  const categoryKey = groupKey + '_page';
+
+  const pages = getPagination(groupKeys.sort(), {
+    page: handler[categoryKey] || 1, 
+    pageSize 
+  });
+
+  const handlePage = (value) => { 
+    handler.send({
+      type: 'CHANGE',
+      key: categoryKey,
+      value
+    });
+  }; 
+
+  return {
+    pages,
+    handlePage,
+    groupKey,
+    categoryKey
+  }
+
+
+}
+
 
 const TubeListViewMember = ({ 
-  handler,
-  handleExpand,
-  groups,
-  groupKey,
-  searchText, 
-  handlePlay,
-  selectedItem,
-  groupItem ,
-  playlists,
-  handleCategory,
-  selected
-}) => {
+    groupItem ,
+    groupKey,
+    selected,
+  }) => {
+
+    const { 
+      handleCategory,
+      handleChange,
+      handleExpand,
+      handlePlay,
+      handler,
+      groups, 
+      searchText, 
+      selectedItem,
+      gridColumns,
+      pageSize
+    } = React.useContext(BrowserContext);
+
 
     const pageKey = groupKey + groupItem + '_page';
     const categoryItems = groups[groupKey][groupItem];
     const { artworkUrl100, title } = categoryItems[0];
 
-    const memberKey = `${groupKey}/${groupItem}`;
+    const memberKey = `${groupKey}${delimiter}${groupItem}`;
     // const memberIsSelected = handler.expanded && handler.expanded[memberKey]; 
 
     const handleNavigate = (type, name) => {
       handleCategory(type);
-      handleExpand(`${type}/${name}`, type)
+      handleExpand(`${type}${delimiter}${name}`, type)
     }
 
     const itemProps = {
@@ -107,15 +155,16 @@ const TubeListViewMember = ({
   
     const pages = getPagination(categoryItems, {
       page: handler[pageKey] || 1, 
-      pageSize: 10,
+      pageSize 
     });
   
     const expandedKey = !handler.expanded 
-    ? ""
-    : Object.keys(handler.expanded)[0];
+          ? ""
+          : Object.keys(handler.expanded)[0];
+ 
+    const [ categoryType, categoryName] = expandedKey.split(delimiter);
 
-    // eslint-disable-next-line 
-    const [ _, categoryName] = expandedKey.split('/')
+ 
 
     return <>
     
@@ -142,19 +191,14 @@ const TubeListViewMember = ({
     {!!selected && (
       <>
 
-     <Flex
-        onClick={() => {
-          handler.send({
-            type: 'CHANGE',
-            key: 'expanded',
-            value: false
-          });
-      }} spacing={1} sx={{mb: 2}}>
-      <TinyButton icon="ArrowBack" />
-     <Nowrap 
-        small hover>
-      {categoryName}
-      </Nowrap>
+     <Flex spacing={1} sx={{mb: 2}}>
+
+      <TinyButton onClick={() => handleChange('expanded', false)} icon="ArrowBack" />
+     
+      <Stack onClick={() => handleChange('expanded', false)} >
+        <Nowrap sx={{ lineHeight: 1 }} tiny hover muted>{categoryType}</Nowrap>
+        <Nowrap sx={{ lineHeight: 1 }} small hover>{categoryName}</Nowrap>
+      </Stack>
 
 
       <Spacer />
@@ -175,14 +219,18 @@ const TubeListViewMember = ({
       
      </Flex>
 
-
-      {pages.visible.map(item => <CategoryItem 
-        playlists={groups.Playlists}
+    <Columns columns={gridColumns}>
+      {pages.visible.map(item => <CategoryItem  
         key={item.trackId} 
         item={item} 
         {...itemProps}
         
-        />)}
+      />)}
+    </Columns>
+
+
+
+
       </>
     )}
     
@@ -190,84 +238,38 @@ const TubeListViewMember = ({
     </>
 }
 
-const TubeListViewNode = ({ 
-    groups, 
-    groupKey, // Albums, Artists, etc
-    handler,  
-    searchText,
-    handlePlay,
-    selectedItem,
-    handleExpand,
-    playlists,
-    handleCategory
-  }) => { 
-  const groupKeys = Object.keys(groups[groupKey]);
-  
-  const pageKey = groupKey + '_page';
-  
-  const pages = getPagination(groupKeys.sort(), {
-    page: handler[pageKey] || 1, 
-    pageSize: 10,
-  });
+const TubeListViewNode = ({ groupKey }) => { 
 
-  const handlePage = (value) => { 
-    handler.send({
-      type: 'CHANGE',
-      key: pageKey,
-      value
-    });
-  }; 
+
+    const { handler } = React.useContext(BrowserContext);
+  
+  
+    const categoryPagination = useTubePagination() 
 
   
   const expandedKey = !handler.expanded 
-  ? ""
-  : Object.keys(handler.expanded)[0]
-  const [ categoryType, categoryName] = expandedKey.split('/')
-
-  const memberProps = {
-
-    handleExpand,  
-    playlists,
-    handleCategory,
-    handler,  
-    searchText,  
-    groups,   
-    handlePlay,  
-    selectedItem,  
-
-  }
+      ? ""
+      : Object.keys(handler.expanded)[0]
+  const [ categoryType, categoryName] = expandedKey.split(delimiter); 
 
   return (
     <Stack sx={{ mt: 1}}>
- 
-      {pages.pageCount > 1 && !handler.expanded && (
-        <CollapsiblePagination
-          pages={pages}
-          page={Number(pages.page)}
-          collapsed  
-          onChange={(b) =>
-            handlePage(b)
-          }
-        />
-      )} 
+  
 
-    {pages.visible.map((groupItem) => ( 
-      <> 
-    
-      <TubeListViewMember 
-           {...memberProps}
-           groupItem={groupItem}
-           groupKey={groupKey}
-
-        /> </> 
+    {categoryPagination.pages.visible.map((groupItem) => (  
+      <TubeListViewMember  
+        groupItem={groupItem}
+        groupKey={groupKey} 
+      />  
       ))}
  
-    {!!handler.expanded && <TubeListViewMember 
-        {...memberProps}
+    {!!handler.expanded && (
+      <TubeListViewMember  
         selected
         groupItem={categoryName}
         groupKey={categoryType}
-        />}
+      />
+        )}
 
  
  
@@ -275,40 +277,34 @@ const TubeListViewNode = ({
   )
 }
 
-const TubeListView = (props) => {
-  const { 
+const TubeListView = () => {
+ 
+ 
+  const {   
     pins, 
     handler, 
     groupKeys, 
-    handleCategory,  
-    handlePlay,
-    selectedItem,
-    searchText,
-    handleExpand,
-    playlists,
-    small,
-    groups
-    // groups,
-  } = props;
- 
+    handleCategory,   
+    handleChange, 
+    small, 
+    gridColumns,
+    pageSize
+  } = React.useContext(BrowserContext);
+
 
   const pages = getPagination(pins, {
     page: handler.listPage || 1, 
-    pageSize: 10,
+    pageSize
   });
 
   const itemProps = {
     handler,
-    caption: detailCaption,
-    searchText, 
-    handlePlay,
-    group: pins,
-    selectedItem,
-    handleExpand,
-    playlists,
+    caption: detailCaption, 
+    group: pins,  
     ml: 1
   }
  
+  const categoryPagination = useTubePagination()
  
 
   return (
@@ -316,39 +312,55 @@ const TubeListView = (props) => {
 
       <Collapse in={!handler.expanded}>
         
-      <PillMenu 
-         value={handler.category}
-         onClick={(key) => handleCategory(key)}
-         options={groupKeys}
-      />
- 
-      </Collapse>
- 
+      <Flex>
+        <PillMenu 
+          value={handler.category}
+          onClick={(key) => handleCategory(key)}
+          options={groupKeys}
+        />
 
-      {!!handler.category && <TubeListViewNode playlists={playlists} {...props} 
-        groupKey={handler.category} />}
+        <Spacer />
 
-     {!handler.category && <Stack sx={{ mt: 2}}>
+        {!!handler.category && categoryPagination.pages.pageCount > 1 && (
+          <CollapsiblePagination
+            pages={categoryPagination.pages}
+            page={Number(categoryPagination.pages.page)}
+            collapsed  
+            onChange={(b) => handleChange(categoryPagination.categoryKey, b)  }
+          />
+        )}
 
-     {pages.pageCount > 1 && (
+      {pages.pageCount > 1 && !handler.category && (
         <CollapsiblePagination
           pages={pages}
+          nolabel
           page={Number(pages.page)}
           collapsed  
-          onChange={(b) => {
-            handler.send({
-              type: 'CHANGE',
-              key: 'listPage',
-              value: b
-            });
-          } }
+          onChange={(b) => handleChange('listPage', b)  }
         />
       )} 
 
 
 
-     {pages.visible.map(item => <CategoryItem playlists={groups.Playlists} key={item.trackId} item={item} {...itemProps}/>)}
-    
+      </Flex>
+ 
+      </Collapse>
+ 
+
+      {!!handler.category && <TubeListViewNode groupKey={handler.category} />}
+
+     {!handler.category && <Stack sx={{ mt: 2}}>
+ 
+        
+    <Columns columns={gridColumns}>
+      {pages.visible.map(item => <CategoryItem  
+          key={item.trackId} 
+          item={item} 
+          {...itemProps}
+        />)} 
+    </Columns>
+
+
     
      </Stack>}
       
@@ -376,7 +388,7 @@ const TubeBrowser = (props) => {
 
   const handleView = (view) => {
     handleChange("view", view); 
-    handleChange('expanded', false); 
+    // handleChange('expanded', false); 
   };
   
   const handleClose = () => {
@@ -433,118 +445,149 @@ const TubeBrowser = (props) => {
     : handler.pins.filter(f => contains(f.title, handler.filter) || 
           contains(f.artistName, handler.filter) || 
           contains(f.collectionName, handler.filter)  )
-  const { groups, playlists } = collatePins(pins);
+  const { groups } = collatePins(pins);
 
   
   const groupKeys = Object.keys(groups);
   const diskUsed = JSON.stringify(handler.pins).length;
+  const gridColumns = handler.view !== 'grid' ? '1fr' : small ? "1fr 1fr 1fr" : "1fr 1fr 1fr 1fr";
+  const pageSize = handler.view === 'grid' ? 12 : 10;
 
   const viewProps = {
     groupKeys,
-    handleExpand,
-    handleCategory,
-    pins,
     groups,
+    handleCategory,
+    handleChange,
+    handleExpand,
     handlePlay,
-    selectedItem,
+    handler,
+    pins, 
+    gridColumns,
     searchText,
-    playlists
+    selectedItem,
+    pageSize,
+    small
   }
   
   return (
-    <Drawer anchor="left" onClose={handleClose} open={handler.browse}>
-      <Stack>
-        {!handler.state.can('FIND') && <>The librarian is busy right now. Try again later.</>}
+    <BrowserContext.Provider value={viewProps}>
+      <Drawer anchor="left" onClose={handleClose} open={handler.browse && !!handler.user}>
+        <Stack>
+          {!handler.state.can('FIND') && <>The librarian is busy right now. Try again later.</>}
 
-        {/* drawer toolbar */}
-        <Flex
-          spacing={1}
-          sx={{ 
-            p: theme => theme.spacing(2,1),
-          }}
-        >
-          <TinyButton icon="YouTube" />
-          <Badge max={10000} color="success" badgeContent={handler.pins?.length}><Nowrap small>Saved videos</Nowrap></Badge>
+          {/* drawer toolbar */}
+          <Flex
+            spacing={1}
+            sx={{ 
+              p: theme => theme.spacing(2,1),
+            }}
+          >
+            <TinyButton icon="YouTube" />
+            <Badge max={10000} color="success" badgeContent={handler.pins?.length}><Nowrap small>Saved videos</Nowrap></Badge>
 
 
-          <Spacer /> 
+            <Spacer /> 
 
-          <TinyButtonGroup
-              onChange={handleView }
-              value={handler.view || 'grid'}
-              values={['grid', 'list']}
-              buttons={['AccountTree', 'ViewList']}
-            />
+            <TinyButtonGroup
+                onChange={handleView }
+                value={handler.view || 'tree'}
+                values={['grid', 'tree', 'list']}
+                buttons={['GridView', 'AccountTree', 'ViewList']}
+              />
 
-          <TinyButton onClick={() => handleClose()} icon="Close" />
-        </Flex>
+            <TinyButton onClick={() => handleClose()} icon="Close" />
+          </Flex>
 
-        {/* search box */}
-        <Flex sx={{ p: 1 }}>
-          <IconTextField 
-            endIcon={<TinyButton onClick={() => handleFilter("")} icon={!!handler.filter ? "Close" : "Search"} />}
-            value={handler.filter}
-            onChange={e => handleFilter(e.target.value)}
-            size="small"
-            label="Filter"
-            fullWidth
-            />
-        </Flex>
-  
-        {/* collection groups */}
+          {/* search box */}
+          <Flex sx={{ p: 1 }}>
+            <IconTextField 
+              endIcon={<TinyButton onClick={() => handleFilter("")} icon={!!handler.filter ? "Close" : "Search"} />}
+              value={handler.filter}
+              onChange={e => handleFilter(e.target.value)}
+              size="small"
+              label="Filter"
+              fullWidth
+              />
+          </Flex>
+    
+          {/* collection groups */}
 
-        {handler.view === 'list' && <TubeListView       
-          {...props}
-          {...viewProps}
-        />}
+          {handler.view !== 'tree' && <TubeListView  />}
 
-      {handler.view !== 'list' && (
-        <Layout small={small}>
-          {groupKeys.map((key) => (
-            <Stack>  
+          {handler.view === 'tree' && (
+            <Layout small={small}>
+              {groupKeys.map((key) => (
+                <Stack>  
 
-              <Flex spacing={1}>
-                <TinyButton icon={groupIcons[key]}  
-                  color={ handler.expanded && handler.expanded[key] ? "error" : "inherit"}
-                />
-                <Nowrap muted={!(handler.expanded && handler.expanded[key])} small hover 
-                    onClick={() => handleExpand(key)}>
-                  {key}
-                </Nowrap>
-              </Flex>
-              
-              <CategoryNode 
-                groupKey={key}
-                handler={handler}
-                groups={groups}
-                searchText={searchText}
-                handlePlay={handlePlay}
-                handleExpand={handleExpand}
-                selectedItem={selectedItem}
-              />  
+                  <Flex spacing={1}>
+                    <TinyButton icon={groupIcons[key]}  
+                      color={ handler.expanded && handler.expanded[key] ? "error" : "inherit"}
+                    />
+                    <Nowrap muted={!(handler.expanded && handler.expanded[key])} small hover 
+                        onClick={() => handleExpand(key)}>
+                      {key}
+                    </Nowrap>
+                  </Flex>
+                  
+                  <CategoryNode groupKey={key} />  
 
-            </Stack>
-          ))} 
-        </Layout>)}
+                </Stack>
+              ))} 
+            </Layout>
+          )}
 
-        <Spacer />
 
-        <Stack sx={{mt: 4, p: 2}}>
-          <Nowrap small muted > {formatBytesToKB(diskUsed)} of 5 MB used</Nowrap>
-          <LinearProgress sx={{mb: 2}} variant="determinate" value={diskUsed / 500000} />
-          {!!handler.user && <Nowrap small><a download={`${handler.user.username}-bookmarks.json`} 
-            title={`${handler.user.username}-boombot.json`}
-            href={jsonLink(handler.pins)}>Download bookmarks</a></Nowrap>}
-          <HiddenUpload onChange={obj => {
-            handler.send({
-              type: "MERGE",
-              items: obj
-            })
-          }}>Import bookmarks...</HiddenUpload>
-        </Stack>
 
-      </Stack> 
-    </Drawer>
+          <Spacer />
+
+
+
+          <Stack sx={{ mt: 4, p: 2 }}>
+          <Nowrap small muted>
+            {' '}
+            {formatBytesToKB(diskUsed)} of 5 MB used
+          </Nowrap>
+
+
+          <LinearProgress
+            sx={{ mb: 2 }}
+            variant="determinate"
+            value={diskUsed / 500000}
+          />
+
+          {!!handler.user && (
+            <Nowrap small>
+              <a
+                download={`${handler.user.username}-bookmarks.json`}
+                title={`${handler.user.username}-boombot.json`}
+                href={jsonLink(handler.pins)}
+              >
+                Download bookmarks
+              </a>
+            </Nowrap>
+          )}
+
+          <HiddenUpload
+            onChange={(obj) => {
+              handler.send({
+                type: 'MERGE',
+                items: obj,
+              });
+            }}
+          >
+            Import bookmarks...
+          </HiddenUpload>
+
+          <Login tube={handler}>
+            <Nowrap small hover>Sign out</Nowrap>
+          </Login>
+
+        </Stack>;
+
+
+        </Stack> 
+      </Drawer>
+    </BrowserContext.Provider>
   );
 };
 TubeBrowser.defaultProps = {};
@@ -554,15 +597,12 @@ export default TubeBrowser;
 
 
 
-const CategoryNode = ({ 
-  groups, 
-  groupKey, // Albums, Artists, etc
-  handler, 
-  searchText, 
-  handlePlay,
-  handleExpand,
-  selectedItem
- }) => {
+const CategoryNode = ({ groupKey }) => {
+
+  const {  
+    groups,  
+    handler,   
+  } = React.useContext(BrowserContext);
 
   const isExpanded = handler.expanded && handler.expanded[groupKey];
   const groupKeys = Object.keys(groups[groupKey]);
@@ -613,19 +653,11 @@ const CategoryNode = ({
       )} 
 
 
-      {pages.visible.map((groupItem) => ( 
-      <> 
-    
-      <CategoryMember 
-          handler={handler}  
-          searchText={searchText}  
-          groups={groups}  
-          groupKey={groupKey}  
-          handleExpand={handleExpand}  
-          handlePlay={handlePlay}  
-          selectedItem={selectedItem}  
+      {pages.visible.map((groupItem) => (  
+        <CategoryMember  
+          groupKey={groupKey}   
           groupItem={groupItem}
-        /> </> 
+        />
       ))}
 
 
@@ -634,18 +666,16 @@ const CategoryNode = ({
   )
 }
 
+const CategoryMember = ({ groupKey, groupItem }) => {
 
-const CategoryMember = ({
-  handler,
-  searchText,
-  groups,
-  groupKey,
-  handleExpand,
-  handlePlay,
-  selectedItem,
-  groupItem,
-}) => {
-  const memberKey = `${groupKey}/${groupItem}`;
+  const {  
+    groups, 
+    handleExpand,
+    handler,  
+  } = React.useContext(BrowserContext);
+
+
+  const memberKey = `${groupKey}${delimiter}${groupItem}`;
   const memberIsSelected = handler.expanded && handler.expanded[memberKey];
   const categoryItems = groups[groupKey][groupItem];
 
@@ -675,14 +705,10 @@ const CategoryMember = ({
           categoryItems
             .sort(sorter('trackNumber'))
             .map((item) => (
-              <CategoryItem
-                searchText={searchText}
+              <CategoryItem  
                 group={groups[groupKey][groupItem]}
-                handler={handler}
                 item={item}
                 caption={groupCaptions[groupKey]}
-                handlePlay={handlePlay}
-                selectedItem={selectedItem}
                 key={item.trackId}
               />
             ))}
@@ -690,8 +716,6 @@ const CategoryMember = ({
     </Stack>
   );
 };
-
-
 
 const CategoryItemMenu = ({ handler, handleFind, item, handleQueue, handlePlay }) => {
   const methods = {
@@ -717,9 +741,9 @@ const CategoryItemMenu = ({ handler, handleFind, item, handleQueue, handlePlay }
         <MenuItem onClick={menu.handleClose('play')}>
           Play {item.title}
         </MenuItem>
-        <MenuItem onClick={menu.handleClose('next')}>
+        {!!handler.items?.length && <MenuItem onClick={menu.handleClose('next')}>
           Play next
-        </MenuItem>
+        </MenuItem>}
         <MenuItem onClick={menu.handleClose('find')}>
           Find more by "{item.artistName}"
         </MenuItem>
@@ -734,25 +758,60 @@ const CategoryItemMenu = ({ handler, handleFind, item, handleQueue, handlePlay }
   );
 };
 
+const CategoryItem = ({ 
+    caption, 
+    item, 
+    group,  
+    ml = 2
+  }) => {
 
-const CategoryItem = ({
-  handler,
-  caption,
-  searchText,
-  item,
-  handlePlay,
-  group,
-  selectedItem,
-  playlists = [] ,
-  ml = 2
-}) => {
+  const {  
+    groups,
+    handlePlay,
+    handler, 
+    searchText, 
+    selectedItem,
+  } = React.useContext(BrowserContext);
 
   const { title, artworkUrl100, artistName, tubekey, } = item;
   const itemIsSelected = selectedItem.href === tubekey; 
 
+  if (handler.view === 'grid') {
+    const maxWidth = 90;
+    return <Stack>
+      <img
+        onClick={() => handlePlay(item, group)} 
+        variant="rounded"
+        src={artworkUrl100}
+        alt={title}
+        style={{ 
+          width: '100%', 
+          aspectRatio: '1 / 1' }}
+      />
+      <Nowrap sx={{ maxWidth }} 
+       
+        error={itemIsSelected}
+        bold={itemIsSelected}
+        onClick={() => handlePlay(item, group)} 
+        hover
+        small
+
+      > {title}</Nowrap>
+
+      {!!caption && (
+          <Nowrap muted tiny sx={{ maxWidth }}>
+            {caption(item)}
+          </Nowrap>
+        )}
+
+    </Stack>
+  }
+
+
   return (
     <Flex sx={{ ml }} spacing={1}>
       <Avatar
+        onClick={() => handlePlay(item, group)} 
         variant="rounded"
         src={artworkUrl100}
         alt={title}
@@ -763,7 +822,7 @@ const CategoryItem = ({
           <PlayListMenu 
             pinnedItem={item}
             tube={handler}
-            playlists={playlists}
+            playlists={groups.Playlists}
             />
           <Nostack
             offset={24}
@@ -777,16 +836,17 @@ const CategoryItem = ({
           </Nostack>
           <Spacer />
           <CategoryItemMenu 
-          handler={handler} 
-          item={item}
-          handleFind={() => searchText(artistName)}  
-          handlePlay={() => handlePlay(item, group)}  
-          handleQueue={() => handlePlay(item, group, true)}  
+            handler={handler} 
+            item={item}
+            handleFind={() => searchText(artistName)}  
+            handlePlay={() => handlePlay(item, group)}  
+            handleQueue={() => handlePlay(item, group, true)}  
            />
         </Flex>
 
         {!!caption && (
-          <Nostack muted small>
+          <Nostack 
+          onClick={() => handlePlay(item, group)}  muted small>
             {caption(item)}
           </Nostack>
         )}

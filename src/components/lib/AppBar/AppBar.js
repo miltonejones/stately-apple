@@ -5,9 +5,9 @@ import {
   Flex,
   Spacer,
   TinyButton,
-  IconTextField,
+  // IconTextField,
   TextIcon,
-  
+  SearchBox
 } from '../../../styled';
 import MediaMenu from '../MediaMenu/MediaMenu';
 import Login from '../Login/Login';
@@ -38,9 +38,9 @@ const AppBar = ({ handler, tube, small }) => {
     };
 
     const lgFieldWidth = isMobileViewPort ? '80vw' : '560px';
-    const smFieldWidth = isMobileViewPort ? '40vw' : '440px';
+    const smFieldWidth = isMobileViewPort ? '55vw' : '440px';
     const headerTag = isMobileViewPort ? 'h3' : 'h1';
-    const smallTag = isMobileViewPort ? 'h6' : 'h5';
+    const smallTag = isMobileViewPort ? 'body1' : 'h5';
     const iconSize = isMobileViewPort ? 48 : 76;
   return (
     <>
@@ -48,9 +48,19 @@ const AppBar = ({ handler, tube, small }) => {
       <Layout small={isMobileViewPort} isIdle={isIdle} data-testid="test-for-AppBar">
         <Flex spacing={isIdle ? 0.5 : 0} sx={{ p: isMobileViewPort ? 0 : 1 }}>
  
-          {!isIdle && <Badge max={10000} color="success" badgeContent={tube.pins?.length}><IconButton  onClick={handleBrowse}>
-              <TextIcon icon="Menu" />
-            </IconButton></Badge>}
+        {!tube.user && !isIdle && <Login tube={tube} />}
+
+          {!isIdle && !!tube.user && <Badge
+                max={10000}
+                overlap="circular"
+                color="success"
+                badgeContent={tube.pins?.length}
+              >
+                <IconButton onClick={() => !!tube.user && handleBrowse()}>
+                 <TinyButton icon="Menu" />
+                </IconButton>
+              </Badge>
+              }
 
           <TextIcon
             color="success"
@@ -66,37 +76,42 @@ const AppBar = ({ handler, tube, small }) => {
             }
             icon="Apple"
           />
+          <Flex spacing={isIdle ? 0.5 : 0} onClick={() => handler.send('CLOSE')}>
+            {['B', 'o', 'o', 'm', 'b', 'o', 't'].map((ltr, i) => (
+              <Nowrap
+                key={i}
+                color={colors[i % colors.length]}
+                variant={isIdle ? headerTag : smallTag}
+              >
+                {ltr}
+              </Nowrap>
+            ))}           
+          </Flex>
 
-          {['B', 'o', 'o', 'm', 'b', 'o', 't'].map((ltr, i) => (
-            <Nowrap
-              key={i}
-              color={colors[i % colors.length]}
-              variant={isIdle ? headerTag : smallTag}
-            >
-              {ltr}
-            </Nowrap>
-          ))}
         </Flex>
 
         {!isIdle && <Spacer />}
+        
 
+       
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handler.send('FIND');
           }}
         >
-          <Flex spacing={1} sx={{ p: 1, justifyContent: 'center' }}>
-            <IconTextField
+          {/* {JSON.stringify(handler.memory)} */}
+          <Flex spacing={1} sx={{ mt: 1, justifyContent: 'center' }}>
+            <SearchBox
               placeholder={isListening
                 ? "Say the name of a song or artist"
-                : "Type  a song name or artist"}
-              label="Find any music"
+                : "Type  a song name or artist"} 
               googlish={isIdle}
               size="small"
               sx={{ width: isIdle ? lgFieldWidth : smFieldWidth }}
               onChange={handler.setProp}
               value={handler.param}
+              options={handler.memory}
               name="param"
               helperText={
                 isListening ? (
@@ -139,7 +154,7 @@ const AppBar = ({ handler, tube, small }) => {
 
        {!isMobileViewPort && <MediaMenu handler={handler} />}
       {!isIdle && <Box sx={{mt:1}}>
-       <Login />
+       {/* <Login tube={tube} /> */}
        </Box>}
       </Layout>
     </>

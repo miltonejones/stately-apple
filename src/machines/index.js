@@ -1,4 +1,4 @@
-import { useAuthenticator } from './authenticatorMachine';
+import { useAuthenticator, AuthContext } from './authenticatorMachine';
 import { useTubeWatch } from './tubeWatchMachine';
 import { useTube } from './tubeMachine';
 import { useMenu } from './menuMachine'; 
@@ -12,5 +12,5 @@ export {
   useMenu, 
   useAudio, 
   useApple,
-  
+  AuthContext
 }

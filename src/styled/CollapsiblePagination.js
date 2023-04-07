@@ -2,10 +2,14 @@
 import React from 'react';
 import { TablePagination, Pagination } from '@mui/material';
 
-const CollapsiblePagination = ({ pages, page, collapsed, onChange }) => {
+const CollapsiblePagination = ({ pages, page, collapsed, onChange, nolabel }) => {
+  const props = nolabel ? {
+    labelDisplayedRows: () => ''
+  } : {}; //    labelDisplayedRows={() => ''}
   if (collapsed) {
     return (
       <TablePagination
+        {...props}
         classes={{
           toolbar: 'table-pagination-toolbar',
           root: 'table-pagination-root'

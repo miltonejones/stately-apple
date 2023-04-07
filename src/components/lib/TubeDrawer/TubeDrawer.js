@@ -340,7 +340,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
           {selectedItem.page || param}
         </Sizewrap>}
 
-        <Spacer />
+        <Spacer /> 
         
         {!!ready && (
           <ConfirmPop
@@ -358,7 +358,8 @@ const TubeDrawer = ({ small, menu, tube }) => {
         >
         
          <TinyButton  
-          color={itemIsPinned && !busy ? 'error' : 'inherit'} 
+            disabled={!tube.user?.userDataKey}
+            color={itemIsPinned && !busy ? 'error' : 'inherit'} 
             deg={itemIsPinned ? 270 : 0}
             icon="PushPin" 
           />
@@ -383,16 +384,11 @@ const TubeDrawer = ({ small, menu, tube }) => {
           <Nowrap bold>Sorry.</Nowrap>
           <Nowrap small>You must be logged in to use this function.</Nowrap>
           <Nowrap small muted wrap>You can come back and try again after you log in..</Nowrap>
+       
           <Flex sx={{ mt: 2}} spacing={1}>
-            {/* <Btn onClick={() => {
-                tube.send({
-                  type: 'CHANGE',
-                  key: "login",
-                  value: true,
-                })
-            }} variant="contained" color="warning">Sign In</Btn> */}
+        
             <Btn onClick={() => tube.send('OK')}>Cancel</Btn>
-            <Login />
+            <Login  tube={tube} />
           </Flex>
 
         </Stack>}
@@ -404,6 +400,8 @@ const TubeDrawer = ({ small, menu, tube }) => {
         {!!response?.pages?.length && !busy && 
         (<Stack spacing={2}>
 
+{/* [ <>   {JSON.stringify(tube.user)}</>]
+[ <>   {JSON.stringify(tube.state.nextEvents)}</>] */}
           <Embed small={small}
               onEnd={() => {
                tube.send('NEXT');
@@ -468,6 +466,5 @@ const Embed = ({ onEnd, small, src }) => {
       autoplay: 1,
     },
   };
-
   return <YouTube videoId={regex[1]} opts={opts} onEnd={onEnd} />  
 };

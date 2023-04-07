@@ -14,7 +14,8 @@ const tubeMachine = createMachine(
       track: {},
       playlists: [],
       response_index: 0,
-      pins: []
+      pins: [],
+      view: 'list'
     },
     states: {
       identify: {
@@ -265,7 +266,7 @@ const tubeMachine = createMachine(
             target: "idle",
             description: "User leaves without logging in",
           },
-        },
+        },  
       },
   
   
@@ -294,6 +295,11 @@ const tubeMachine = createMachine(
               onDone: [
                 {
                   target: "#youtube_search.idle",
+                },
+              ],
+              onError: [
+                {
+                  target: "#youtube_search.no_access",
                 },
               ],
             },
@@ -341,9 +347,10 @@ const tubeMachine = createMachine(
         actions: "assignPinChange",
         description: "Change a property on the current pin",
       },
-      SIGNOUT: {
-        target: ".signout",
-        description: "Invoke user sign out.",
+      ALOHA: {
+        target: ".idle",
+        actions: ["assignUser"],
+        description: "User has logged into or out of the app",
       },
       MERGE: {
         target: ".dynamo",
@@ -397,7 +404,7 @@ const tubeMachine = createMachine(
           .indexOf(selectedItem?.href);
         return selectedIndex < context.items.length - 1;
       },
-      isLoggedIn: (context) => !!context.user,
+      isLoggedIn: (context) => Boolean(context.user),
       isntPinned: (context) => {
         return !context.pins.some((f) => f.param === context.param);
       },
@@ -665,7 +672,7 @@ const tubeMachine = createMachine(
         user: null,
       })),
       assignUser: assign((_, event) => ({
-        user: event.data,
+        user: event.user,
       })),
       appendBatch: assign((context, event) => ({
         batch: context.batch.concat(event.batch)
@@ -716,7 +723,8 @@ export const useTube = (onChange, onClose) => {
       },
       dynamoPersist: async (context) => {
         if (!context.user) return;
-        const { userDataKey } = context.user; 
+        const { userDataKey } = context.user;  
+        // alert(userDataKey)
 
         await objectPut({
           username: userDataKey, 

@@ -1,3 +1,5 @@
+import SearchBox from './SearchBox';
+import TextPopover from './TextPopover';
 import PillMenu from './PillMenu';
 import HiddenUpload from './HiddenUpload';
 import MessageSnackbar from './MessageSnackbar';
@@ -19,6 +21,8 @@ import Nowrap from './Nowrap';
  
 
 export {
+  SearchBox,
+  TextPopover,
   PillMenu,
   HiddenUpload,
   MessageSnackbar,

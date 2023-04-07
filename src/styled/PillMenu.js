@@ -7,7 +7,7 @@ import TinyButton from './TinyButton';
 
 const PillMenu = ({ options, value, onClick }) => {
   return (
-    <Flex spacing={!!value ? 0 : 1}>
+    <Flex spacing={!!value ? 0 : 0.25}>
       {!!value && (
         <Box sx={{ mr: 1 }}>
           <TinyButton icon="Close" onClick={() => onClick('')} />

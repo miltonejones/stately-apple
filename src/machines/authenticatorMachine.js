@@ -1,6 +1,9 @@
+import React from 'react';
 import { Auth } from 'aws-amplify';
 import { createMachine, assign } from 'xstate';
 import { useMachine } from "@xstate/react";
+
+export const AuthContext = React.createContext();
 
 // add machine code
 const authenticatorMachine = createMachine({
@@ -30,6 +33,9 @@ const authenticatorMachine = createMachine({
     },
     signed_in: {
       description: "Successful login adds the authenticated user to scope",
+      invoke: {
+        src: 'emitUser'
+      },
       on: {
         SIGNOUT: {
           target: "signing_out",
@@ -40,8 +46,19 @@ const authenticatorMachine = createMachine({
       },
     },
     signing_in: {
-      initial: "form_entry",
+      initial: "initiate",
       states: {
+        initiate: {
+          description: "Emit user info to calling components",
+          invoke: {
+            src: "emitUser",
+            onDone: [
+              {
+                target: "form_entry",
+              },
+            ],
+          },
+        },
         form_entry: {
           description: "Shows the login form with option to sign up or reset password",
           meta: {
@@ -115,7 +132,7 @@ const authenticatorMachine = createMachine({
             src: "updateRequest",
             onDone: [
               {
-                target: "form_entry",
+                target: "initiate",
               },
             ],
             onError: [
@@ -259,6 +276,17 @@ const authenticatorMachine = createMachine({
             },
           },
         },
+        // eliminate: {
+        //   description: "Emit user info to calling components",
+        //   invoke: {
+        //     src: "emitUser",
+        //     onDone: [
+        //       {
+        //         target: "#auth.signed_in",
+        //       },
+        //     ],
+        //   },
+        // },
       },
     },
     signing_out: {
@@ -320,17 +348,14 @@ const authenticatorMachine = createMachine({
 
 });
 
-export const useAuthenticator = () => {
+export const useAuthenticator = (onSign) => {
   const [state, send] = useMachine(authenticatorMachine, {
     services: {
       authenticateUser: async() => {  
-        const e = await Auth.currentAuthenticatedUser();
- 
-        console.log ( { e })
-        return {
-          username: e?.username,
-          attributes: e?.attributes, 
-        }; 
+       return await Auth.currentAuthenticatedUser(); 
+      },
+      emitUser: async(context) => { 
+        return onSign && onSign(context.user)
       },
       signOut: async(context) => { 
         return await Auth.signOut(); 
@@ -345,11 +370,7 @@ export const useAuthenticator = () => {
       },
       signIn: async(context) => {
         const { username, password } = context;
-        const e = await Auth.signIn(username, password);  
-        return {
-          username: e?.username,
-          attributes: e?.attributes, 
-        }; 
+        return await Auth.signIn(username, password);   
       },
       confirmSignUp: async(context) => {
         const { username, verificationCode } = context;

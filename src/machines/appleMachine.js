@@ -12,6 +12,7 @@ const appleMachine = createMachine({
 initial: "idle",
   states: {
     idle: {
+      entry: "assignMemory",
       description: 'Display main screen and wait  for  search entry.',
     },
     search: {
@@ -200,10 +201,27 @@ initial: "idle",
       lookupType: event.entity,
       sortBy: event.order
     })),
-    assignResults: assign((_, event) => ({
-      results: event.data,
-      page: 1
-    })),
+    assignMemory: assign({
+      memory: JSON.parse(
+        localStorage.getItem('amp-memory') || "[]"
+      )
+    }),
+    assignResults: assign((context, event) => { 
+      const memory = JSON.parse(
+        localStorage.getItem('amp-memory') || "[]"
+      )
+
+      if (memory.indexOf(context.param) < 0) {
+        memory.push(context.param)
+        localStorage.setItem('amp-memory', JSON.stringify(memory)) 
+      }
+
+      return {
+        results: event.data,
+        page: 1,
+        memory,
+      }
+    }),
     assignHeard: assign((_, event) => { 
       return {
         param: event.result

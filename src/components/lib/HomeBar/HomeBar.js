@@ -32,7 +32,7 @@ const HomeBar = ({ handler, tube }) => {
     </Nowrap>
   </Flex>
   <Spacer />
-<Login />
+<Login  tube={tube}/>
  
 {/* 
   {!!tube.user && (

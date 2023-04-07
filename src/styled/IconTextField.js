@@ -21,7 +21,8 @@ const IconTextField = ({ endIcon, startIcon, googlish, ...props }) => {
     ...props.InputProps,  
     style: { backgroundColor: "white" }, 
     startAdornment, 
-    endAdornment
+    endAdornment,
+    disableUnderline: true
   } 
 
   const sx = googlish ? {
@@ -57,8 +58,8 @@ const IconTextField = ({ endIcon, startIcon, googlish, ...props }) => {
     <TextField
       size="small"
       autoComplete="off"
-      InputProps={inputProps}
       {...props}
+      InputProps={inputProps}
       sx={{
         ...sx,
         ...props.sx

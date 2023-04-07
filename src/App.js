@@ -1,5 +1,5 @@
 import './App.css';
-import { useApple, useTube, useMenu, useAudio } from './machines';
+import { AuthContext, useApple, useTube, useMenu, useAuthenticator, useAudio } from './machines';
 import { LinearProgress } from '@mui/material';
 
 import AudioPlayer from './components/lib/AudioPlayer/AudioPlayer';
@@ -31,13 +31,19 @@ function App() {
   }, tubeMenu.handleClose());
 
 
+  const authenticator = useAuthenticator(user => tube.send({
+    type: 'ALOHA',
+    user
+  }));
+
+
   const apple = useApple();
   const audio = useAudio();
 
   const { isMobileViewPort, isIdle, isListening, isSearching, hasListItems } = apple;
 
   return (
-    <>
+    <AuthContext.Provider value={{ authenticator }}>
       {/* progress bar for batch import progress  */}
       {!!tube.batch_progress && (
         <LinearProgress value={tube.batch_progress} variant="determinate" />
@@ -69,7 +75,7 @@ function App() {
 
       {/* app footer  */}
       <AppFooter small={isMobileViewPort} />
-    </>
+    </AuthContext.Provider>
   );
 }
 

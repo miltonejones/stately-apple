@@ -1,5 +1,5 @@
-const DB_NAME = 'itunes_data_v1';
-const TABLE_NAME = 'itunes_table';
+const DB_NAME = 'itunes_data_v2';
+const TABLE_NAME = 'bookmark_table';
 
 
 export const objectPut = (record) => new Promise(resolve => { 

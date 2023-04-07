@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Card , Avatar, Popover, Stack} from '@mui/material';
 // import { withAuthenticator } from '@aws-amplify/ui-react';
 import {
-  useAuthenticator ,
+  AuthContext ,
   useMenu
 } from '../../../machines';
 import {
@@ -12,6 +12,7 @@ import {
   Btn, 
   FlexMenu,
   IconTextField,
+  TextIcon,
   TinyButton,
   ConfirmPop
 } from '../../../styled';
@@ -50,7 +51,7 @@ const LoginForm = ({ handler, onClose, fields }) => {
   } = fields[key]
 
 
-  const [...rest] = Object.keys(data);
+  const rest = Object.keys(data);
   const handleChange = e => {
     handler.send({
       type: 'CHANGE',
@@ -119,32 +120,38 @@ const LoginForm = ({ handler, onClose, fields }) => {
   
 }
  
-const Login = (props) => { 
-  const auth = useAuthenticator();
+const Login = ({ children, ...props }) => { 
+  const { authenticator } = React.useContext(AuthContext)
+  // const auth = useAuthenticator(user => props.tube.send({
+  //   type: 'ALOHA',
+  //   user
+  // }));
   const menu = useMenu()
 
-  if (auth.state.matches('send_signin')) {
+  if (authenticator.state.matches('send_signin')) {
     return <>Signing you in...</>
   }
 
 
-  if (auth.state.matches('signed_in')) {
-    return  <ConfirmPop  onChange={(ok) => ok &&  auth.send('SIGNOUT')}
+  if (authenticator.state.matches('signed_in')) {
+    return  <ConfirmPop  onChange={(ok) => ok &&  authenticator.send('SIGNOUT')}
       label="Confirm Logout"
       message="Are you sure you want to sign out?"
-      ><Avatar 
-    
-      >{auth.user.username?.substr(0, 2).toUpperCase()}</Avatar></ConfirmPop>  
+      >{!children 
+        ? <Avatar>{authenticator.user.username?.substr(0, 2).toUpperCase()}</Avatar> 
+        : <>{children}</>}</ConfirmPop>  
   }
  
  return (
    <>
-   <Btn
-      variant="contained"
-      onClick={menu.handleClick}
+
+
+   <Avatar size="small" onClick={menu.handleClick}
     >
-      Sign Up
-    </Btn>
+      <TextIcon icon="Lock" />
+    </Avatar>
+
+
   <FlexMenu component={Popover}
         anchorEl={menu.anchorEl}
         open={Boolean(menu.anchorEl)}
@@ -152,9 +159,9 @@ const Login = (props) => {
       >
 
   <Card sx={{p:2}}>
-    {!!auth.state.meta && <LoginForm onClose={menu.handleClose()} handler={auth} fields={auth.state.meta} />} 
+    {!!authenticator.state.meta && <LoginForm onClose={menu.handleClose()} handler={authenticator} fields={authenticator.state.meta} />} 
 
-    {!!auth.error && <LoginError handler={auth} />} </Card>
+    {!!authenticator.error && <LoginError handler={authenticator} />} </Card>
 </FlexMenu>
 
    </>
