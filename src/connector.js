@@ -1,6 +1,4 @@
-const API_ENDPOINT = 'https://itunes.apple.com';
-
-
+const API_ENDPOINT = 'https://itunes.apple.com'; 
 
 export const findMusic = async (term, media = 'all') => {
   const response = await fetch(API_ENDPOINT + `/search?term=${term}&media=${media}&limit=200`);
@@ -12,7 +10,4 @@ export const lookupMusic = async (id, entity) => {
   return await response.json();
 };
 
-
-// entity=allArtist&attribute=allArtistTerm. 
-// entity=album&attribute=albumTerm. 
-
+ 

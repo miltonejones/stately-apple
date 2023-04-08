@@ -515,7 +515,7 @@ const TubeBrowser = (props) => {
             <TinyButton icon="YouTube" />
 
             <Shield badgeContent={handler.pins?.length}>
-              <Nowrap small>Saved videos</Nowrap>
+              <Nowrap small>Saved previews</Nowrap>
             </Shield>
 
             <Spacer />
