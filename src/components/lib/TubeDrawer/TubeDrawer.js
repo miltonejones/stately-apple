@@ -24,7 +24,7 @@ import {
   TinyButton,
   MessageSnackbar,
   TimerProgress,
-  TimedSnackbar,
+  // TimedSnackbar,
   Shield
 } from '../../../styled';
 

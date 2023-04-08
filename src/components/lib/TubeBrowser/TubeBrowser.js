@@ -83,6 +83,17 @@ const Halfwrap = styled(({ ...props }) => <Nowrap {...props} />)(
   })
 );
 
+const Gridwrap = styled(({ ...props }) => <Nowrap {...props} />)(
+  ({ theme, offset }) => ({
+    width: `calc(100px - ${offset}px)`,
+    overflow: 'hidden',
+    lineHeight: 1,
+    [theme.breakpoints.down('md')]: {
+      width: `calc(30vw - ${offset}px)`,
+    },
+  })
+);
+
 const Hand = styled((props) => <Link {...props} underline="hover" />)(
   ({ theme }) => ({
     color: theme.palette.text.secondary,
@@ -225,7 +236,7 @@ const TubeListViewMember = ({ groupItem, groupKey, selected }) => {
             )}
           </Flex>
 
-          <Columns spacing={0.25} columns={gridColumns}>
+          <Columns spacing={0.5} columns={gridColumns}>
             {pages.visible.map((item) => (
               <CategoryItem key={item.trackId} item={item} {...itemProps} />
             ))}
@@ -456,7 +467,7 @@ const TubeBrowser = (props) => {
   const diskUsed = JSON.stringify(handler.pins).length;
   const gridColumns =
     handler.view !== 'grid' ? '1fr' : small ? '1fr 1fr 1fr' : '1fr 1fr 1fr 1fr';
-  const pageSize = handler.view === 'grid' ? 12 : 10;
+  const pageSize = handler.view === 'grid' ? 9 : 10;
 
   const viewProps = {
     groupKeys,
@@ -800,9 +811,12 @@ const CategoryItem = ({ caption, item, group, ml = 2 }) => {
   const itemIsSelected = selectedItem.href === tubekey;
 
   if (handler.view === 'grid') {
-    const maxWidth = 100;
+
+ 
+
+
     return (
-      <Stack>
+      <Stack sx={{ mb: 1}} >
         <img
           onClick={() => handlePlay(item, group)}
           variant="rounded"
@@ -821,8 +835,8 @@ const CategoryItem = ({ caption, item, group, ml = 2 }) => {
             playlists={groups.Playlists}
           />
 
-          <Nowrap
-            sx={{ maxWidth }}
+          <Gridwrap
+            offset={24}
             error={itemIsSelected}
             bold={itemIsSelected}
             onClick={() => handlePlay(item, group)}
@@ -830,14 +844,14 @@ const CategoryItem = ({ caption, item, group, ml = 2 }) => {
             small
           >
             {title}
-          </Nowrap>
+          </Gridwrap>
         </Flex>
 
         {!!caption && (
           <Flex>
-            <Nowrap muted tiny sx={{ maxWidth: maxWidth + 16 }}>
+            <Gridwrap offset={18} muted tiny>
               {caption(item)}
-            </Nowrap>
+            </Gridwrap>
             <Spacer />
             <CategoryItemMenu
               handler={handler}
