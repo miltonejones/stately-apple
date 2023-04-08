@@ -154,13 +154,27 @@ const ResultList = ({ tube, selectedItem }) => {
 
         {pages?.map((item, k) => (
           <MenuItem key={k}>
-            <Flex>
+            <Flex spacing={1}>
+              <img 
+                src={item.image}
+                alt={item.page}
+                style={{
+                  height: 40,
+                  aspectRatio: '16 / 9'
+                }}
+              />
+              <Stack>
               <Nowrap
+                small
                 bold={k === tube.response_index}
                 onClick={menu.handleClose(k)}
               >
                 {item.page}
               </Nowrap>
+              <Nowrap tiny muted>
+                {item.href}
+              </Nowrap>
+              </Stack>
             </Flex>
           </MenuItem>
         ))}
@@ -355,6 +369,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
   const pin = tube.items?.find((f) => f.tubekey === selectedItem?.href);
   const { playlists } = collatePins(tube.pins);
   const calculatedHeight = window.innerWidth * 0.5625;
+  const showResultList = !pin && tube.response?.pages?.length > 1;
 
   return (
     <>
@@ -362,7 +377,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
         folded={tube.folded}
         small={busy}
         calculatedHeight={calculatedHeight}
-        offset={!!pin ? 40 : 0}
+        offset={!!pin ? 40 : showResultList ? 20 : 0}
         open={Boolean(menu.open) || busy || no_access}
         onClose={menu.handleClose()}
       >
@@ -466,7 +481,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
                     src={selectedItem?.href}
                   />
 
-                  {!pin && tube.response?.pages?.length > 1 && (
+                  {showResultList && (
                     <ResultList tube={tube} />
                   )}
 

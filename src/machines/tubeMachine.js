@@ -828,28 +828,18 @@ export const useTube = (onChange, onClose) => {
     ...state.context,
   };
 };
-
-const API_KEY = 'AIzaSyBqbOe9B2CrJS6H395xUWkvoxcuWTZVE04';
-
-// const API_ENDPOINT =
-//   "https://pv37bpjkgl.execute-api.us-east-1.amazonaws.com/find";
-
-  
-const TUBE_ENDPOINT =
-`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&key=${API_KEY}&q=`;
-
-
-// const searchTube = async (param) => {
-//   const response = await fetch(API_ENDPOINT + `/${encodeURIComponent(param.replace(/\//g, ' '))}`);
-//   await searchTubeAPI(param)
-//   return await response.json();
-// };
  
 const searchTubeAPI = async (param) => {
-  const response = await fetch(TUBE_ENDPOINT + `${encodeURIComponent(param.replace(/\//g, ' '))}`);
+  
+  const TUBE_ENDPOINT =
+  `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&key=${process.env.REACT_APP_API_KEY}&q=`;
+  
+  const response = await fetch(TUBE_ENDPOINT + `${encodeURIComponent(param.replace(/\//g, ' '))}`); 
   const json = await response.json();
   const pins = {
-    pages: json.items.map(item => ({
+    pages: json.items
+    .filter(item => !!item.id.videoId)
+    .map(item => ({
       href: `https://www.youtube.com/watch?v=${item.id.videoId}`,
       page: item.snippet.title,
       image:  item.snippet.thumbnails.default.url

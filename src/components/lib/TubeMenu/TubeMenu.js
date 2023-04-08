@@ -19,7 +19,7 @@ const TubeMenu = ({ track, tube, items = [] }) => {
   return (
     <Tooltag
       component={TinyButton}
-      title={pinned ? 'Play YouTube video' : 'Find track on YouTube'}
+      title={pinned ? 'Play YouTube preview' : 'Preview track on YouTube'}
       color={pinned ? 'error' : 'inherit'}
       disabled={(queued || disabled) && !pinned}
       onClick={(e) =>
