@@ -377,6 +377,7 @@ export const useAuthenticator = (onSign) => {
   const [state, send] = useMachine(authenticatorMachine, {
     services: {
       authenticateUser: async() => {  
+        window.scrollTo(0, 1);
        return await Auth.currentAuthenticatedUser(); 
       },
       emitUser: async(context) => { 

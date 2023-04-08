@@ -67,7 +67,18 @@ const Nostack = styled(({ ...props }) => <Nowrap {...props} />)(
     width: 300 - offset,
     overflow: 'hidden',
     [theme.breakpoints.down('md')]: {
-      width: 'calc(80vw - 120px)',
+      width: 'calc(90vw - 120px)',
+    },
+  })
+);
+
+const Halfwrap = styled(({ ...props }) => <Nowrap {...props} />)(
+  ({ theme }) => ({
+    width: 200,
+    overflow: 'hidden',
+    lineHeight: 1,
+    [theme.breakpoints.down('md')]: {
+      width: '40vw',
     },
   })
 );
@@ -189,12 +200,12 @@ const TubeListViewMember = ({ groupItem, groupKey, selected }) => {
             />
 
             <Stack onClick={() => handleChange('expanded', false)}>
-              <Nowrap sx={{ lineHeight: 1 }} tiny hover muted>
+              <Halfwrap tiny hover muted>
                 {categoryType}
-              </Nowrap>
-              <Nowrap sx={{ lineHeight: 1 }} small hover>
+              </Halfwrap>
+              <Halfwrap  small hover>
                 {categoryName}
-              </Nowrap>
+              </Halfwrap>
             </Stack>
 
             <Spacer />
@@ -789,7 +800,7 @@ const CategoryItem = ({ caption, item, group, ml = 2 }) => {
   const itemIsSelected = selectedItem.href === tubekey;
 
   if (handler.view === 'grid') {
-    const maxWidth = 60;
+    const maxWidth = 100;
     return (
       <Stack>
         <img

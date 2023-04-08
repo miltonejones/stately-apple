@@ -505,9 +505,9 @@ const TubeDrawer = ({ small, menu, tube }) => {
         </Collapse>
       </Video>
  
-      {!!Object.keys(tube.state.meta).length && <TimedSnackbar handler={tube}>
+      {/* {!!Object.keys(tube.state.meta).length && <TimedSnackbar handler={tube}>
           {tube.state.meta.message}
-        </TimedSnackbar>}
+        </TimedSnackbar>} */}
 
       <MessageSnackbar
         progress={tube.batch_progress}
