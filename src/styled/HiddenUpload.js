@@ -2,7 +2,7 @@ import React  from "react";
 import Nowrap from './Nowrap';
 
 
-function HiddenUpload({ children, onChange }) {
+function HiddenUpload({ children, onChange, fileOnly }) {
   const ref = React.useRef(null); 
 
   const handleFileUpload = (event) => {
@@ -13,6 +13,10 @@ function HiddenUpload({ children, onChange }) {
       const data = JSON.parse(reader.result);
       onChange && onChange(data);
     };
+
+    if (fileOnly) {
+      return onChange && onChange(file);
+    }
 
     reader.readAsText(file);
   };

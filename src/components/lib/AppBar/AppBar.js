@@ -1,66 +1,80 @@
 import React from 'react';
-import { Badge, styled, Stack, Box, IconButton, LinearProgress } from '@mui/material';
+import { 
+  styled,
+  Stack, 
+  IconButton,
+  LinearProgress,
+} from '@mui/material';
 import {
   Nowrap,
   Flex,
   Spacer,
-  TinyButton,
-  // IconTextField,
+  TinyButton, 
   TextIcon,
-  SearchBox
+  SearchBox, 
+  Shield
 } from '../../../styled';
 import MediaMenu from '../MediaMenu/MediaMenu';
 import Login from '../Login/Login';
 
 const Layout = styled(({ ...props }) => (
-  <Stack {...props} spacing={props.isIdle ? 2 : 0} direction={props.isIdle ? 'column' : 'row'} />
+  <Stack
+    {...props}
+    spacing={props.isIdle ? 2 : 0}
+    direction={props.isIdle ? 'column' : 'row'}
+  />
 ))(({ theme, small, isIdle }) => ({
-  backgroundColor: theme.palette.common.white, //isIdle ? theme.palette.common.white : theme.palette.grey[200]
+  backgroundColor: theme.palette.common.white, 
   padding: small ? theme.spacing(1) : theme.spacing(1, 3),
-  marginBottom: small ? 0 : theme.spacing(1), 
-  alignItemms: 'center' 
-  // border: 'solid 1px green'
+  marginBottom: small ? 0 : theme.spacing(1),
+  alignItemms: 'center', 
 }));
 
-const AppBar = ({ handler, tube, small }) => {
-  // const theme = useTheme();
-  const { isMobileViewPort } = handler  ;
+const AppBar = ({ handler, tube, small }) => { 
+  const { isMobileViewPort } = handler;
   const colors = ['info', 'error', 'success', 'warning'];
   const { isIdle } = handler;
-  const isBusy = ['search.lookup', 'search.list.entity'].some(handler.state.matches);
+  const isBusy = ['search.lookup', 'search.list.entity'].some(
+    handler.state.matches
+  );
   const isListening = handler.state.matches('transcribe.listening');
   const handleBrowse = () => {
-      tube.send({
-        type: 'CHANGE',
-        key: 'browse',
-        value: !tube.browse
-      })
-    };
+    tube.send({
+      type: 'CHANGE',
+      key: 'browse',
+      value: !tube.browse,
+    });
+  };
 
-    const lgFieldWidth = isMobileViewPort ? '80vw' : '560px';
-    const smFieldWidth = isMobileViewPort ? '55vw' : '440px';
-    const headerTag = isMobileViewPort ? 'h3' : 'h1';
-    const smallTag = isMobileViewPort ? 'body1' : 'h5';
-    const iconSize = isMobileViewPort ? 48 : 76;
+  const lgFieldWidth = isMobileViewPort ? '80vw' : '560px';
+  const smFieldWidth = isMobileViewPort ? '55vw' : '440px';
+  const headerTag = isMobileViewPort ? 'h3' : 'h1';
+  const smallTag = isMobileViewPort ? 'body1' : 'h5';
+  const iconSize = isMobileViewPort ? 48 : 76;
   return (
     <>
       {isBusy && <LinearProgress />}
-      <Layout small={isMobileViewPort} isIdle={isIdle} data-testid="test-for-AppBar">
+      <Layout
+        small={isMobileViewPort}
+        isIdle={isIdle}
+        data-testid="test-for-AppBar"
+      >
         <Flex spacing={isIdle ? 0.5 : 0} sx={{ p: isMobileViewPort ? 0 : 1 }}>
- 
-        {!tube.user && !isIdle && <Login tube={tube} />}
+          {!tube.user && !isIdle && <Login tube={tube} />}
 
-          {!isIdle && !!tube.user && <Badge
-                max={10000}
-                overlap="circular"
-                color="success"
-                badgeContent={tube.pins?.length}
-              >
-                <IconButton onClick={() => !!tube.user && handleBrowse()}>
-                 <TinyButton icon="Menu" />
-                </IconButton>
-              </Badge>
-              }
+          {!isIdle && !!tube.user && (
+            <Shield
+              max={10000}
+              overlap="circular"
+              color="success"
+              badgeContent={tube.pins?.length}
+              onClick={() => !!tube.user && handleBrowse()}
+            >
+              <IconButton>
+                <TinyButton icon="Menu" />
+              </IconButton>
+            </Shield>
+          )}
 
           <TextIcon
             color="success"
@@ -71,12 +85,15 @@ const AppBar = ({ handler, tube, small }) => {
                     height: iconSize,
                   }
                 : {
-                  display: 'none'
-                }
+                    display: 'none',
+                  }
             }
             icon="Apple"
           />
-          <Flex spacing={isIdle ? 0.5 : 0} onClick={() => handler.send('CLOSE')}>
+          <Flex
+            spacing={isIdle ? 0.5 : 0}
+            onClick={() => handler.send('CLOSE')}
+          >
             {['B', 'o', 'o', 'm', 'b', 'o', 't'].map((ltr, i) => (
               <Nowrap
                 key={i}
@@ -85,31 +102,33 @@ const AppBar = ({ handler, tube, small }) => {
               >
                 {ltr}
               </Nowrap>
-            ))}           
+            ))}
           </Flex>
-
         </Flex>
 
         {!isIdle && <Spacer />}
-        
 
-       
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handler.send('FIND');
           }}
-        >
-          {/* {JSON.stringify(handler.memory)} */}
+        > 
           <Flex spacing={1} sx={{ mt: 1, justifyContent: 'center' }}>
             <SearchBox
-              placeholder={isListening
-                ? "Say the name of a song or artist"
-                : "Type  a song name or artist"} 
+              placeholder={
+                isListening
+                  ? 'Say the name of a song or artist'
+                  : 'Type  a song name or artist'
+              }
               googlish={isIdle}
               size="small"
               sx={{ width: isIdle ? lgFieldWidth : smFieldWidth }}
               onChange={handler.setProp}
+              onUserSelect={(val) => {
+                handler.setProp('param', val);
+                handler.send('FIND');
+              }}
               value={handler.param}
               options={handler.memory}
               name="param"
@@ -120,17 +139,22 @@ const AppBar = ({ handler, tube, small }) => {
                   </>
                 ) : isIdle ? (
                   <>
-                  Click the <TinyButton icon="Mic" /> icon to use voice.
-                </>
-                ) : ""
+                    Click the <TinyButton icon="Mic" /> icon to use voice.
+                  </>
+                ) : (
+                  ''
+                )
               }
-              startIcon={isMobileViewPort ? null : <IconButton>
-                <TextIcon icon={"MusicNote"} />
-              </IconButton>}
-
+              startIcon={
+                isMobileViewPort ? null : (
+                  <IconButton>
+                    <TextIcon icon={'MusicNote'} />
+                  </IconButton>
+                )
+              }
               endIcon={
-                <Flex spacing={1} >
-                  <IconButton color={isListening ? "error" : "inherit"}>
+                <Flex spacing={1}>
+                  <IconButton color={isListening ? 'error' : 'inherit'}>
                     <TextIcon
                       onClick={() =>
                         handler.send(isListening ? 'STOP' : 'SPEAK')
@@ -138,24 +162,22 @@ const AppBar = ({ handler, tube, small }) => {
                       icon={isListening ? 'MicOff' : 'Mic'}
                     />
                   </IconButton>
-              
-                  {!small && <IconButton>
-                    <TextIcon
-                      onClick={() => handler.send('CLOSE')}
-                      icon={isIdle ? 'Search' : 'Close'}
-                    />
-                  </IconButton>}
+
+                  {!small && (
+                    <IconButton>
+                      <TextIcon
+                        onClick={() => handler.send('CLOSE')}
+                        icon={isIdle ? 'Search' : 'Close'}
+                      />
+                    </IconButton>
+                  )}
                 </Flex>
               }
-            />
-            {/* {JSON.stringify(handler.state.value)} */}
+            /> 
           </Flex>
         </form>
 
-       {!isMobileViewPort && <MediaMenu handler={handler} />}
-      {!isIdle && <Box sx={{mt:1}}>
-       {/* <Login tube={tube} /> */}
-       </Box>}
+        {!isMobileViewPort && <MediaMenu handler={handler} />} 
       </Layout>
     </>
   );

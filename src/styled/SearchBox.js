@@ -1,11 +1,15 @@
 
 import React from 'react';
-import { Autocomplete } from '@mui/material'; 
+import { styled, Paper, Autocomplete } from '@mui/material'; 
 import IconTextField from './IconTextField';
 import Flex from './Flex';
 import Nowrap from './Nowrap';
-import TextIcon from './TextIcon';
+import TinyButton from './TinyButton';
 import { makeStyles } from '@mui/styles'; 
+
+const Dropdown = styled(Paper)(({ theme }) => ({
+  borderRadius: '1rem',
+}))
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -65,18 +69,27 @@ export default function SearchBox({ options = [], ...props}) {
     }});    
   }
   const renderOption = (props, option) => <Flex {...props} spacing={1}>
-    <TextIcon icon="AccessTime" />
+    <TinyButton icon="AccessTime" />
     <Nowrap small muted>{option}</Nowrap>
   </Flex>
 
   return (
     <Autocomplete
+      autoFocus
       freeSolo
       options={options}
       value={props.value}
+      PaperComponent={(props) => (
+        <Dropdown {...props} />
+      )}
+      PopperProps={{
+        anchorEl: null,
+        placement: 'bottom-start',
+        style: { marginTop: '-10px' },
+      }}
 
       onChange={(event, value) => {
-        handleChange(value);
+        props.onUserSelect(value);
       }}
       onInputChange={(event, value) => {
         handleChange(value);
@@ -88,6 +101,7 @@ export default function SearchBox({ options = [], ...props}) {
           {...params}
           {...props} 
           googlish 
+          autoFocus
           variant="standard"
          
         />

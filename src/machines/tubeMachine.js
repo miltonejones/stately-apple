@@ -9,7 +9,7 @@ const tubeMachine = createMachine(
     id: "youtube_search",
     description:
       "The YouTube search machine connects to YouTube to perform simple searches. The results are returned as JSON and emitted to any calling component. The machine can also persist tracks for later reuse in localStorage or, when the user is logged in, in a server-side DynamoDB.",
-    initial: "identify",
+    initial: "idle",
     context: {
       track: {},
       playlists: [],
@@ -42,6 +42,9 @@ const tubeMachine = createMachine(
           "Machine waits for searches after updating context from storage",
         entry: "setContextMessage",
         initial: "reload",
+        meta: {
+          message: "Ready",
+        },
         states: {
           reload: {
             invoke: {
@@ -55,7 +58,7 @@ const tubeMachine = createMachine(
               ],
             },
           },
-          collate: {
+          collate: { 
             description: "Organize flat list into categories for the UI",
             entry: "initPins",
           }, 
@@ -218,6 +221,11 @@ const tubeMachine = createMachine(
             actions: "assignNext",
             description: 'Play next or previous track in a track list"',
           },
+          CANCEL: {
+            target: "idle",
+            actions: "clearBatch",
+            description: "User cancels batch before completion",
+          },
           GOTO: {
             target: "play",
             actions: "assignByIndex",
@@ -289,7 +297,10 @@ const tubeMachine = createMachine(
             ],
           },
           store: {
-            description: "Persist changes to dynamo storage",
+            description: "Persist changes to dynamo storage",  
+            meta: {
+              message: "Preview bookmark saved",
+            },
             invoke: {
               src: "dynamoPersist",
               onDone: [
@@ -349,7 +360,9 @@ const tubeMachine = createMachine(
       },
       ALOHA: {
         target: ".idle",
-        actions: ["assignUser"],
+        actions: ["assignUser", 
+        // (_,e) => alert('ALOHA:'+JSON.stringify(_.user))
+      ],
         description: "User has logged into or out of the app",
       },
       MERGE: {
@@ -451,23 +464,30 @@ const tubeMachine = createMachine(
 
       }),
       assignPin: assign((context, event) => {
-        const { response } = context;
-        const exists = context.pins.some((f) => f.param === event.pin.param);
+        const { response, response_index } = context;
+        const { pin } = event;
+
+        const exists = context.pins.some((f) => f.param === pin.param);
+
+        if (!exists) {
+          Object.assign(pin, { response_index, versions: response.pages })
+        }
 
         const pins = exists
-          ? context.pins.filter((f) => f.param !== event.pin.param)
-          : context.pins.concat(event.pin);
+          ? context.pins.filter((f) => f.param !== pin.param)
+          : context.pins.concat(pin);
 
         localStorage.setItem("tb-pins", JSON.stringify(pins));
 
         return {
           pins,
-          pin: event.pin,
-          items: [event.pin],
+          pin: exists ? null : pin,
+       
+          items: [pin],
           response: {
             ...response,
-            pages: response.pages.map((page) =>
-              page.href === event.pin.tubekey
+            pages: (pin.versions || response.pages).map((page) =>
+              page.href === pin.tubekey
                 ? {
                     ...page,
                     pinned: !exists,
@@ -508,7 +528,7 @@ const tubeMachine = createMachine(
            pins,
           groups:[],
           playlists: [],
-          response_index: 0
+          // response_index: 0
         };
       }),
       assignResponse: assign((_, event) => {
@@ -732,14 +752,19 @@ export const useTube = (onChange, onClose) => {
         }) 
       }, 
       dynamoLoad: async (context) => {
+        // alert(JSON.stringify(context.user))
         if (!context.user) return [];
+        // alert(2)
         const { userDataKey } = context.user; 
         try {
+          // alert(3)
           const db = await objectGet(userDataKey);
           if (db) { 
+            // alert(7)
             return db.pins;
           }
         } catch (ex) {
+          // alert(4)
           console.log ({ ex })
         }
 

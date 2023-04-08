@@ -213,7 +213,7 @@ initial: "idle",
 
       if (memory.indexOf(context.param) < 0) {
         memory.push(context.param)
-        localStorage.setItem('amp-memory', JSON.stringify(memory)) 
+        localStorage.setItem('amp-memory', JSON.stringify(memory.slice(memory.length - 20))) 
       }
 
       return {

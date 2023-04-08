@@ -17,6 +17,7 @@ const Nowrap = styled(Typography)(
     thin,
     border,
     bold = false,
+    fullWidth,
     hover,
   }) => {
     const obj = {
@@ -42,6 +43,11 @@ const Nowrap = styled(Typography)(
         whiteSpace: 'nowrap',
         overflowX: 'hidden',
         textOverflow: 'ellipsis',
+      });
+    }
+    if (fullWidth) {
+      Object.assign(obj, {
+        width: '100%',
       });
     }
     if (tiny) {

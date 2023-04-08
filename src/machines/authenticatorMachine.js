@@ -33,15 +33,51 @@ const authenticatorMachine = createMachine({
     },
     signed_in: {
       description: "Successful login adds the authenticated user to scope",
-      invoke: {
-        src: 'emitUser'
+      initial: "idle",
+      states: {
+        idle: {
+          description: "Successful login adds the authenticated user to scope",
+          invoke: {
+            src: "emitUser",
+          },
+          on: {
+            UPDATE: {
+              target: "change",
+              actions: "assignProps",
+            },
+          },
+        },
+        change: {
+          description: "Update user attribute",
+          initial: "update",
+          states: {
+            update: {
+              invoke: {
+                src: "updateUser",
+                onDone: [
+                  {
+                    target: "refresh",
+                  },
+                ],
+              },
+            },
+            refresh: {
+              invoke: {
+                src: "authenticateUser",
+                onDone: [
+                  {
+                    target: "#auth.signed_in.idle",
+                    actions: "assignAuth",
+                  },
+                ],
+              },
+            },
+          },
+        },
       },
       on: {
         SIGNOUT: {
           target: "signing_out",
-        },
-        UPDATE: {
-          actions: "updateUser",
         },
       },
     },
@@ -276,17 +312,7 @@ const authenticatorMachine = createMachine({
             },
           },
         },
-        // eliminate: {
-        //   description: "Emit user info to calling components",
-        //   invoke: {
-        //     src: "emitUser",
-        //     onDone: [
-        //       {
-        //         target: "#auth.signed_in",
-        //       },
-        //     ],
-        //   },
-        // },
+      
       },
     },
     signing_out: {
@@ -319,12 +345,6 @@ const authenticatorMachine = createMachine({
 
   actions: {
 
-    updateUser: assign((context, event) => ({
-      user: {
-        ...context.user,
-        ...event.user 
-      }
-    })),
     assignAuth: assign((_, event) => ({
       user: event.data, 
     })),
@@ -341,6 +361,11 @@ const authenticatorMachine = createMachine({
         stack: null,
       };
     }),
+    assignProps: assign((_, event) => ({
+      changes: {
+        [event.key]: event.value
+      }
+    })),
     applyChanges: assign((_, event) => ({
       [event.key]: event.value
     })),
@@ -359,6 +384,9 @@ export const useAuthenticator = (onSign) => {
       },
       signOut: async(context) => { 
         return await Auth.signOut(); 
+      },
+      updateUser: async(context) => { 
+        return await Auth.updateUserAttributes(context.user, context.changes); 
       },
       forgotRequest: async(context) => {
         const { username } = context;
@@ -388,9 +416,18 @@ export const useAuthenticator = (onSign) => {
      },
   }); 
 
+  const setPhoto = value => {
+    send({
+      type: 'UPDATE',
+      key: 'picture',
+      value
+    })
+  }
+
   return {
     state,
     send, 
+    setPhoto,
     ...state.context
   };
 }

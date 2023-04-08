@@ -1,3 +1,6 @@
+import TimedSnackbar from './TimedSnackbar';
+import Shield from './Shield';
+import TimerProgress from './TimerProgress';
 import SearchBox from './SearchBox';
 import TextPopover from './TextPopover';
 import PillMenu from './PillMenu';
@@ -21,6 +24,9 @@ import Nowrap from './Nowrap';
  
 
 export {
+  TimedSnackbar,
+  Shield,
+  TimerProgress,
   SearchBox,
   TextPopover,
   PillMenu,
