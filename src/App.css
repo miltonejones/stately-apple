@@ -32,14 +32,31 @@ sup {
   padding-left: 0 !important; 
 }
 
+.table-pagination-actions  { 
+  border: solid 1px lightseagreen !important;
+  margin-left: 0 !important;
+}
+
+
 .table-pagination-root  { 
   border-bottom: none !important;
 }
 
+
+html {
+  overflow: hidden;
+  width: 100%;
+}
+
 body {
+  height: 100%;
+  position: fixed; 
+  width: 100vw;
+  -webkit-overflow-scrolling: touch; 
   background-color: #ebebeb;
   margin: 0;
-  overflow: hidden;
+  overflow-y: scroll;
+  /* overflow: hidden; */
   --bottom-bar-offset: 48px;
   --top-bar-offset: 72px;
 }
