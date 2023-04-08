@@ -10,6 +10,7 @@ function ProfilePhotoForm({ currentPhoto, onPhotoChange }) {
     <TextPopover
       label="Set profile photo"
       name="photo"
+      value={authenticator.user?.attributes.picture}
       description={
         <Flex spacing={1}>
           {!!authenticator.user?.attributes.picture && (

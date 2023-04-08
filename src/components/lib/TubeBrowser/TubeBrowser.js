@@ -11,7 +11,8 @@ import {
   CircularProgress,
   LinearProgress,
   Link,
-  Slider
+  Slider,
+  IconButton
 } from '@mui/material';
 import { useMenu } from '../../../machines';
 import {
@@ -322,10 +323,15 @@ const TubeListView = () => {
 
           {pages.pageCount > 1 && !handler.category && (
             <>
-            <CircularProgress size={18} 
-              variant="determinate"
+            <IconButton
               onClick={(b) => handleChange('showPage', !handler.showPage)}
-              value={100 * (pages.page / pages.pageCount)} />
+              sx={{ border: 1, borderColor: 'divider'}}
+            >
+              <CircularProgress size={18} 
+                variant="determinate"
+                value={100 * (pages.page / pages.pageCount)} />
+            </IconButton>
+
             <CollapsiblePagination
               pages={pages}
               nolabel

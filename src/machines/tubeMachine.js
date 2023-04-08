@@ -779,7 +779,7 @@ export const useTube = (onChange, onClose) => {
   
               reader.onload = () => {
                 const json = JSON.parse(reader.result);
-                console.log('JSON file retrieved:', json);
+                // console.log('JSON file retrieved:', json);
                 resolve(json)
               };
             } catch (ex) {
@@ -807,7 +807,7 @@ export const useTube = (onChange, onClose) => {
         return false;
       },
       execSearch: async (context) => {
-        return await searchTube(context.param);
+        return await searchTubeAPI(context.param);
       },
     },
   });
@@ -829,10 +829,33 @@ export const useTube = (onChange, onClose) => {
   };
 };
 
-const API_ENDPOINT =
-  "https://pv37bpjkgl.execute-api.us-east-1.amazonaws.com/find";
-const searchTube = async (param) => {
-  const response = await fetch(API_ENDPOINT + `/${encodeURIComponent(param.replace(/\//g, ' '))}`);
-  return await response.json();
-};
+const API_KEY = 'AIzaSyBqbOe9B2CrJS6H395xUWkvoxcuWTZVE04';
+
+// const API_ENDPOINT =
+//   "https://pv37bpjkgl.execute-api.us-east-1.amazonaws.com/find";
+
+  
+const TUBE_ENDPOINT =
+`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&key=${API_KEY}&q=`;
+
+
+// const searchTube = async (param) => {
+//   const response = await fetch(API_ENDPOINT + `/${encodeURIComponent(param.replace(/\//g, ' '))}`);
+//   await searchTubeAPI(param)
+//   return await response.json();
+// };
  
+const searchTubeAPI = async (param) => {
+  const response = await fetch(TUBE_ENDPOINT + `${encodeURIComponent(param.replace(/\//g, ' '))}`);
+  const json = await response.json();
+  const pins = {
+    pages: json.items.map(item => ({
+      href: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+      page: item.snippet.title,
+      image:  item.snippet.thumbnails.default.url
+    }))
+  }; 
+  return pins;
+};
+    
+
