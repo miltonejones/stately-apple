@@ -4,7 +4,7 @@ import {
   Drawer,
   Stack,
   Avatar,
-  Collapse, 
+  Collapse,
   Box,
   MenuItem,
   Divider,
@@ -12,7 +12,7 @@ import {
   LinearProgress,
   Link,
   Slider,
-  IconButton
+  IconButton,
 } from '@mui/material';
 import { useMenu } from '../../../machines';
 import {
@@ -27,7 +27,7 @@ import {
   IconTextField,
   CollapsiblePagination,
   HiddenUpload,
-  Shield
+  Shield,
 } from '../../../styled';
 import { sorter } from '../../../util/sorter';
 import { getPagination } from '../../../util/getPagination';
@@ -215,7 +215,7 @@ const TubeListViewMember = ({ groupItem, groupKey, selected }) => {
               <Halfwrap tiny hover muted>
                 {categoryType}
               </Halfwrap>
-              <Halfwrap  small hover>
+              <Halfwrap small hover>
                 {categoryName}
               </Halfwrap>
             </Stack>
@@ -323,46 +323,52 @@ const TubeListView = () => {
 
           {pages.pageCount > 1 && !handler.category && (
             <>
-            <IconButton
-              onClick={(b) => handleChange('showPage', !handler.showPage)}
-              sx={{ border: 1, borderColor: 'divider'}}
-            >
-              <CircularProgress size={18} 
-                variant="determinate"
-                value={100 * (pages.page / pages.pageCount)} />
-            </IconButton>
+              <IconButton
+                onClick={(b) => handleChange('showPage', !handler.showPage)}
+                sx={{ border: 1, borderColor: 'divider' }}
+              >
+                <CircularProgress
+                  size={18}
+                  variant="determinate"
+                  value={100 * (pages.page / pages.pageCount)}
+                />
+              </IconButton>
 
-            <CollapsiblePagination
-              pages={pages}
-              nolabel
-              page={Number(pages.page)}
-              collapsed
-              onChange={(b) => handleChange('listPage', b)}
-            /></>
+              <CollapsiblePagination
+                pages={pages}
+                nolabel
+                page={Number(pages.page)}
+                collapsed
+                onChange={(b) => handleChange('listPage', b)}
+              />
+            </>
           )}
         </Flex>
 
         <Collapse in={handler.showPage}>
           <Flex spacing={1}>
-            <Nowrap wrap small muted>{pages.page}</Nowrap>
-          <Slider
+            <Nowrap wrap small muted>
+              {pages.page}
+            </Nowrap>
+            <Slider
               value={Number(pages.page)}
               onChange={(_, b) => handleChange('listPage', b)}
-              step={1} 
+              step={1}
               min={1}
               max={pages.pageCount}
             />
-            <Nowrap wrap small muted>{pages.pageCount}</Nowrap>
+            <Nowrap wrap small muted>
+              {pages.pageCount}
+            </Nowrap>
           </Flex>
-
-       </Collapse>
+        </Collapse>
       </Collapse>
 
       {!!handler.category && <TubeListViewNode groupKey={handler.category} />}
 
       {!handler.category && (
         <Stack sx={{ mt: 2 }}>
-          <Columns spacing={0.25}  columns={gridColumns}>
+          <Columns spacing={0.25} columns={gridColumns}>
             {pages.visible.map((item) => (
               <CategoryItem key={item.trackId} item={item} {...itemProps} />
             ))}
@@ -373,8 +379,7 @@ const TubeListView = () => {
   );
 };
 
-const TubeBrowser = (props) => { 
-
+const TubeBrowser = (props) => {
   const { handler, small, searchText: searchMethod } = props;
 
   const selectedItem = !handler.response?.pages
@@ -386,7 +391,7 @@ const TubeBrowser = (props) => {
   };
 
   const handleView = (view) => {
-    handleChange('view', view); 
+    handleChange('view', view);
   };
 
   const handleClose = () => {
@@ -456,7 +461,7 @@ const TubeBrowser = (props) => {
     if (bytes < mb) {
       return Math.round(bytes / 1024) + 'kb';
     }
-    return (Math.round(bytes / (mb / 100)) / 100) + 'MB';
+    return Math.round(bytes / (mb / 100)) / 100 + 'MB';
   }
 
   const pins = !handler.filter
@@ -744,7 +749,7 @@ const CategoryItemMenu = ({
   item,
   handleQueue,
   handlePlay,
-  disabled
+  disabled,
 }) => {
   const { navigateCaption, handleNavigate } = React.useContext(BrowserContext);
   const { title, artworkUrl100, artistName, collectionName } = item;
@@ -771,11 +776,14 @@ const CategoryItemMenu = ({
         open={Boolean(menu.anchorEl)}
         onClose={menu.handleClose()}
       >
-        <TrackInfo image={artworkUrl100} title={title}
-          sx={{ p: 2}}
+        <TrackInfo
+          image={artworkUrl100}
+          title={title}
+          sx={{ p: 2 }}
           size={48}
           spacing={1}
-          caption={navigateCaption(item)}>
+          caption={navigateCaption(item)}
+        >
           {title}
         </TrackInfo>
         <Divider />
@@ -783,14 +791,12 @@ const CategoryItemMenu = ({
           Play {title}
         </MenuItem>
         {!!handler.items?.length && (
-          <MenuItem disabled={disabled} onClick={menu.handleClose('next')}>Add to queue</MenuItem>
+          <MenuItem disabled={disabled} onClick={menu.handleClose('next')}>
+            Add to queue
+          </MenuItem>
         )}
-        <MenuItem onClick={menu.handleClose('name')}>
-          View artist 
-        </MenuItem>
-        <MenuItem onClick={menu.handleClose('tape')}>
-          View album 
-        </MenuItem>
+        <MenuItem onClick={menu.handleClose('name')}>View artist</MenuItem>
+        <MenuItem onClick={menu.handleClose('tape')}>View album</MenuItem>
         <Divider />
         <MenuItem onClick={menu.handleClose('find')}>
           Find more by "{artistName}"
@@ -817,12 +823,8 @@ const CategoryItem = ({ caption, item, group, ml = 2 }) => {
   const itemIsSelected = selectedItem.href === tubekey;
 
   if (handler.view === 'grid') {
-
- 
-
-
     return (
-      <Stack sx={{ mb: 1}} >
+      <Stack sx={{ mb: 1 }}>
         <img
           onClick={() => handlePlay(item, group)}
           variant="rounded"
@@ -873,13 +875,13 @@ const CategoryItem = ({ caption, item, group, ml = 2 }) => {
   }
 
   return (
-    <TrackInfo 
+    <TrackInfo
       image={artworkUrl100}
       title={title}
       caption={caption(item)}
-      sx={{ ml }} spacing={1}
+      sx={{ ml }}
+      spacing={1}
     >
-
       <PlayListMenu
         pinnedItem={item}
         tube={handler}
@@ -911,31 +913,32 @@ const CategoryItem = ({ caption, item, group, ml = 2 }) => {
   );
 };
 
-const TrackInfo = ({ children, image, title, caption, size = 32, ...props}) => {
+const TrackInfo = ({
+  children,
+  image,
+  title,
+  caption,
+  size = 32,
+  ...props
+}) => {
   return (
     <Flex {...props}>
+      <Avatar
+        variant="rounded"
+        src={image}
+        alt={title || image}
+        sx={{ width: size, height: size }}
+      />
 
-    <Avatar 
-      variant="rounded"
-      src={image}
-      alt={title || image}
-      sx={{ width: size, height: size }}
-    />
+      <Stack>
+        <Flex spacing={1}>{children}</Flex>
 
-    <Stack >
-
-
-      <Flex spacing={1}>
-        {children}
-      </Flex>
-
-      {!!caption && (
-        <Nostack muted small>
-          {caption}
-        </Nostack>
-      )}
-
-    </Stack>
-  </Flex>
-  )
-}
+        {!!caption && (
+          <Nostack muted small>
+            {caption}
+          </Nostack>
+        )}
+      </Stack>
+    </Flex>
+  );
+};
