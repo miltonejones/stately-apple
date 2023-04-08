@@ -749,7 +749,7 @@ export const useTube = (onChange, onClose) => {
  
 
 
-        const stored = await Storage.put(filename, JSON.stringify(context.pins), {
+        await Storage.put(filename, JSON.stringify(context.pins), {
           contentType: 'application/json'
         });
 
@@ -771,35 +771,38 @@ export const useTube = (onChange, onClose) => {
           contentType: 'application/json'
         });
 
-        if (file?.Body) { 
-
-          return await new Promise(resolve => {
-
-            const reader = new FileReader();
-            reader.readAsText(file.Body);
-
-            reader.onload = () => {
-              const json = JSON.parse(reader.result);
-              console.log('JSON file retrieved:', json);
-              resolve(json)
-            };
-
+        if (file?.Body) {  
+          return await new Promise(resolve => { 
+            try { 
+              const reader = new FileReader();
+              reader.readAsText(file.Body);
+  
+              reader.onload = () => {
+                const json = JSON.parse(reader.result);
+                console.log('JSON file retrieved:', json);
+                resolve(json)
+              };
+            } catch (ex) {
+              console.log (ex)
+            } 
           })
  
         }
 
+        console.log ("No file body was received")
 
-        try {
-          // alert(3)
-          const db = await objectGet(userDataKey);
-          if (db) { 
-            // alert(7)
-            return db.pins;
-          }
-        } catch (ex) {
-          // alert(4)
-          console.log ({ ex })
-        }
+
+        // try {
+        //   // alert(3)
+        //   const db = await objectGet(userDataKey);
+        //   if (db) { 
+        //     // alert(7)
+        //     return db.pins;
+        //   }
+        // } catch (ex) {
+        //   // alert(4)
+        //   console.log ({ ex })
+        // }
 
         return false;
       },
