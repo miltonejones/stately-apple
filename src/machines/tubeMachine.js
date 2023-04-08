@@ -1,7 +1,8 @@
 import { createMachine, assign } from "xstate";
 import { useMachine } from "@xstate/react";
-import { Auth } from "aws-amplify";
-import { objectGet, objectPut } from "../util/objectPut";
+import { Auth, Storage } from "aws-amplify";
+import { objectGet, objectPut } from "../util/objectPut"; 
+
 
 // add machine code
 const tubeMachine = createMachine(
@@ -744,8 +745,15 @@ export const useTube = (onChange, onClose) => {
       dynamoPersist: async (context) => {
         if (!context.user) return;
         const { userDataKey } = context.user;  
-        // alert(userDataKey)
+        const filename = `${userDataKey}.json`;
+ 
 
+
+        const stored = await Storage.put(filename, JSON.stringify(context.pins), {
+          contentType: 'application/json'
+        });
+
+ 
         await objectPut({
           username: userDataKey, 
           pins: context.pins
@@ -754,8 +762,33 @@ export const useTube = (onChange, onClose) => {
       dynamoLoad: async (context) => {
         // alert(JSON.stringify(context.user))
         if (!context.user) return [];
-        // alert(2)
+ 
         const { userDataKey } = context.user; 
+        const filename = `${userDataKey}.json`;
+
+        const file = await Storage.get(filename, {
+          download: true,
+          contentType: 'application/json'
+        });
+
+        if (file?.Body) { 
+
+          return await new Promise(resolve => {
+
+            const reader = new FileReader();
+            reader.readAsText(file.Body);
+
+            reader.onload = () => {
+              const json = JSON.parse(reader.result);
+              console.log('JSON file retrieved:', json);
+              resolve(json)
+            };
+
+          })
+ 
+        }
+
+
         try {
           // alert(3)
           const db = await objectGet(userDataKey);

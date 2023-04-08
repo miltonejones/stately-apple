@@ -111,10 +111,13 @@ const timerMachine = createMachine({
 );
 
 
-export const useTimer = (settings) => {
+export const useTimer = (settings = {
+  limit: 0,
+  auto: false
+}) => {
   const [state, send] = useMachine(timerMachine, {
     services: { 
-      loadSettings: async() => settings
+      loadSettings: async() => settings 
     },
   }); 
 

@@ -11,6 +11,7 @@ import {
   CircularProgress,
   LinearProgress,
   Link,
+  Slider
 } from '@mui/material';
 import { useMenu } from '../../../machines';
 import {
@@ -301,6 +302,7 @@ const TubeListView = () => {
             <>
             <CircularProgress size={18} 
               variant="determinate"
+              onClick={(b) => handleChange('showPage', !handler.showPage)}
               value={100 * (pages.page / pages.pageCount)} />
             <CollapsiblePagination
               pages={pages}
@@ -311,6 +313,21 @@ const TubeListView = () => {
             /></>
           )}
         </Flex>
+
+        <Collapse in={handler.showPage}>
+          <Flex spacing={1}>
+            <Nowrap wrap small muted>{pages.page}</Nowrap>
+          <Slider
+              value={Number(pages.page)}
+              onChange={(_, b) => handleChange('listPage', b)}
+              step={1} 
+              min={1}
+              max={pages.pageCount}
+            />
+            <Nowrap wrap small muted>{pages.pageCount}</Nowrap>
+          </Flex>
+
+       </Collapse>
       </Collapse>
 
       {!!handler.category && <TubeListViewNode groupKey={handler.category} />}
