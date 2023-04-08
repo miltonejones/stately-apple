@@ -590,7 +590,7 @@ const TubeBrowser = (props) => {
             <LinearProgress
               sx={{ mb: 2 }}
               variant="determinate"
-              value={diskUsed / 500000}
+              value={diskUsed / 50000}
             />
 
             {!!handler.user && (
