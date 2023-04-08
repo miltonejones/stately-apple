@@ -1,7 +1,7 @@
 import { createMachine, assign } from "xstate";
 import { useMachine } from "@xstate/react";
 import { Auth, Storage } from "aws-amplify";
-import { objectGet, objectPut } from "../util/objectPut"; 
+// import { objectGet, objectPut } from "../util/objectPut"; 
 
 
 // add machine code
@@ -754,10 +754,10 @@ export const useTube = (onChange, onClose) => {
         });
 
  
-        await objectPut({
-          username: userDataKey, 
-          pins: context.pins
-        }) 
+        // await objectPut({
+        //   username: userDataKey, 
+        //   pins: context.pins
+        // }) 
       }, 
       dynamoLoad: async (context) => {
         // alert(JSON.stringify(context.user))

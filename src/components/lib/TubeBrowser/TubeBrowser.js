@@ -41,7 +41,7 @@ const BrowserContext = React.createContext();
 
 const Layout = styled(Box)(({ small, theme }) => ({
   margin: theme.spacing(1, 2),
-  width: small ? '80vw' : 400,
+  width: small ? '90vw' : 400,
 }));
 
 const delimiter = '~';
