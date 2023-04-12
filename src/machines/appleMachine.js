@@ -135,8 +135,7 @@ initial: "idle",
               target: "stopping",
               description: "Transition to stopping mode to begin search.",
             },
-            HEAR: {
-              // target: "#apple_search.search",
+            HEAR: { 
               target: "stopping",
               actions: "assignHeard",
               description: "Assign transcribed text to state.",

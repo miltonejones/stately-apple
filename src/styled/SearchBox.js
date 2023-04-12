@@ -1,109 +1,77 @@
-
 import React from 'react';
-import { styled, Paper, Autocomplete } from '@mui/material'; 
+import { Paper, Autocomplete } from '@mui/material'; 
 import IconTextField from './IconTextField';
 import Flex from './Flex';
 import Nowrap from './Nowrap';
+import PropTypes from 'prop-types';
 import TinyButton from './TinyButton';
-import { makeStyles } from '@mui/styles'; 
+import { searchStyles } from './searchStyles'; 
 
-const Dropdown = styled(Paper)(({ theme }) => ({
-  borderRadius: '1rem',
-}))
+/**
+ * This component renders a search box with autocomplete functionality.
+ * @param {Array} options - An array of options that can be selected from.
+ * @param {Function} onChange - A function that is called when the search box value changes.
+ * @param {String} name - The name of the search box.
+ * @param {String} value - The current value of the search box.
+ * @param {Function} onUserSelect - A function that is called when a user selects an option.
+ */
+function SearchBox({ options = [], onChange, name, value, onUserSelect, ...props }) {
+  const classes = searchStyles();
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    '&.Mui-focused': {
-      borderRadius: '24px 24px 0 0',
-    },
-    '& .MuiAutocomplete-inputRoot': {
-      // padding: '0',
-      width: '100%',
-      backgroundColor: '#f1f3f4',
-      borderRadius: '24px',
-      display: 'flex',
-      alignItems: 'center',
-      boxShadow: 'none',
-      '& input': {
-        padding: '0.25rem 1rem',
-        border: 'none',
-        flex: '1',
-        lineHeight: '1.2',
-        marginLeft: '8px',
-      },
-      '&:hover': {
-        backgroundColor: '#fff',
-        boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
-      },
-      '&:focus': {
-        backgroundColor: '#fff',
-        boxShadow: '0 2px 4px 0 rgba(0, 0, 255, 0.1)',
-        borderRadius: '24px 24px 0 0',
-      },
-    },
-    '& .MuiAutocomplete-endAdornment': {
-      display: 'none',
-    },
-  },
-}));
-
-// const options = [
-//   'Google Search',
-//   'I am feeling lucky',
-//   'Google Doodles',
-//   'Google Images',
-//   'Google News',
-//   'Google Books',
-//   'Google Maps',
-//   'Google Drive',
-//   'Google Translate',
-//   'Google Shopping',
-// ];
-
-export default function SearchBox({ options = [], ...props}) {
-  const classes = useStyles();
-  const handleChange = value => {
-    props.onChange({ target: {
-      name: props.name,
-      value
-    }});    
+  /**
+   * This function handles the change in value for the search box.
+   * @param {String} value - The new value of the search box.
+   */
+  const handleChange = (value) => {
+    onChange({ 
+      target: {
+        name: name,
+        value: value
+      }
+    });
   }
-  const renderOption = (props, option) => <Flex {...props} spacing={1}>
-    <TinyButton icon="AccessTime" />
-    <Nowrap small muted>{option}</Nowrap>
-  </Flex>
+
+  /**
+   * This function renders an option in the autocomplete dropdown.
+   * @param {Object} props - Props passed to this component.
+   * @param {String} option - The option to render.
+   */
+  const renderOption = (props, option) => {
+    return (
+      <Flex {...props} spacing={1}>
+        <TinyButton icon="AccessTime" />
+        <Nowrap small muted>{option}</Nowrap>
+      </Flex>
+    );
+  }
 
   return (
     <Autocomplete
       autoFocus
       freeSolo
       options={options}
-      value={props.value}
+      value={value}
       PaperComponent={(props) => (
-        <Dropdown {...props} />
+        <Paper variant="outlined" {...props} /> // Changed styling to variant outlined
       )}
       PopperProps={{
         anchorEl: null,
         placement: 'bottom-start',
         style: { marginTop: '-10px' },
       }}
-
       onChange={(event, value) => {
-        props.onUserSelect(value);
+        onUserSelect(value);
       }}
       onInputChange={(event, value) => {
         handleChange(value);
       }}
-
       renderInput={(params) => (
         <IconTextField
-
           {...params}
-          {...props} 
           googlish 
           autoFocus
-          variant="standard"
-         
+          variant="outlined" // Changed variant to outlined
+          {...props} 
         />
       )}
       renderOption={renderOption}
@@ -111,4 +79,22 @@ export default function SearchBox({ options = [], ...props}) {
     />
   );
 }
-//  InputProps={{ ...params.InputProps, disableUnderline: true }}
+
+SearchBox.propTypes = {
+  options: PropTypes.array,
+  onChange: PropTypes.func,
+  name: PropTypes.string,
+  value: PropTypes.string,
+  onUserSelect: PropTypes.func
+}
+
+SearchBox.defaultProps = {
+  options: [],
+  onChange: () => {},
+  name: '',
+  value: '',
+  onUserSelect: () => {}
+}
+ 
+
+export default SearchBox;

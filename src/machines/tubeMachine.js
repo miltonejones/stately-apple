@@ -478,6 +478,8 @@ const tubeMachine = createMachine(
           ? context.pins.filter((f) => f.param !== pin.param)
           : context.pins.concat(pin);
 
+        // console.log ({ exists, pins })
+
         localStorage.setItem("tb-pins", JSON.stringify(pins));
 
         return {
@@ -724,47 +726,73 @@ const tubeMachine = createMachine(
     },
   }
 );
+
+// This function exports a custom hook called useTube.
+// It takes in two callbacks as arguments, onChange and onClose.
 export const useTube = (onChange, onClose) => {
+  // useMachine is a hook from the xstate library that returns a state machine and its interpreter.
+  // Here, it's being used to create a state machine based on the tubeMachine object,
+  // which is defined elsewhere in the codebase.
+  // The services property of the configuration object passed to useMachine
+  // defines the various asynchronous functions that the state machine can use as services.
   const [state, send] = useMachine(tubeMachine, {
     services: {
+      // userSignOut is an asynchronous function that signs the user out of the app.
+      // It returns a promise that resolves when the sign out is complete.
       userSignOut: async () => {
         return await Auth.signOut();
       },
       
+      // emitClose is an asynchronous function that invokes the onClose callback.
       emitClose: async () => {
         onClose && onClose();
       },
 
+      // identifyUser is an asynchronous function that returns information about the authenticated user.
+      // It returns a promise that resolves with an object containing the user's attributes.
       identifyUser: async () => {
         return await Auth.currentAuthenticatedUser();
       },
  
+      // emitResponse is an asynchronous function that invokes the onChange callback,
+      // passing in the response from the context object as an argument.
       emitResponse: async (context) => {
         onChange && onChange(context.response);
       },
+
+      // dynamoPersist is an asynchronous function that saves the state of the app to DynamoDB.
+      // It returns a promise that resolves when the save is complete.
       dynamoPersist: async (context) => {
         if (!context.user) return;
         const { userDataKey } = context.user;  
-        const filename = `${userDataKey}.json`;
+        const filename = `web/${userDataKey}.json`; 
+
+        try {
+          const result = await Storage.put(filename, JSON.stringify(context.pins));
+          console.log('File uploaded successfully with key:', result.key, context.pins);
+          await new Promise(r => setTimeout(r, 2999));
+          // console.log (' OK now lets %csee', 'color: lime')
+          return result;
+        } catch (error) {
+          console.error('Error uploading file:', error);
+        }
  
-
-
-        await Storage.put(filename, JSON.stringify(context.pins), {
-          contentType: 'application/json'
-        });
-
- 
-        // await objectPut({
-        //   username: userDataKey, 
-        //   pins: context.pins
-        // }) 
       }, 
-      dynamoLoad: async (context) => {
-        // alert(JSON.stringify(context.user))
+
+      // dynamoLoad is an asynchronous function that loads the state of the app from DynamoDB.
+      // It returns a promise that resolves with the saved state as a JSON object.
+
+      dynamoLoad: async (context) => { 
         if (!context.user) return [];
  
         const { userDataKey } = context.user; 
-        const filename = `${userDataKey}.json`;
+        const filename = `web/${userDataKey}.json`;
+
+        // const response = await Storage.head(filename);
+        // console.log ({
+        //   response
+        // })
+
 
         const file = await Storage.get(filename, {
           download: true,
@@ -779,33 +807,22 @@ export const useTube = (onChange, onClose) => {
   
               reader.onload = () => {
                 const json = JSON.parse(reader.result);
-                // console.log('JSON file retrieved:', json);
+                // console.log ('JSON file retrieved:', json);
                 resolve(json)
               };
             } catch (ex) {
               console.log (ex)
             } 
-          })
- 
-        }
-
-        console.log ("No file body was received")
-
-
-        // try {
-        //   // alert(3)
-        //   const db = await objectGet(userDataKey);
-        //   if (db) { 
-        //     // alert(7)
-        //     return db.pins;
-        //   }
-        // } catch (ex) {
-        //   // alert(4)
-        //   console.log ({ ex })
-        // }
+          }) 
+        } 
+        console.log ("No file body was received") 
 
         return false;
       },
+
+      // execSearch is an asynchronous function that searches the YouTube API
+      // using the search parameter passed in from the context object.
+      // It returns a promise that resolves with the search results as an object.
       execSearch: async (context) => {
         return await searchTubeAPI(context.param);
       },

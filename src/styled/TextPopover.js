@@ -1,13 +1,20 @@
-
 import React from 'react';
-import { Popover, Stack, Box, Collapse, TextField } from '@mui/material'; 
-import { useMenu } from '../machines';
-import Flex from './Flex';
-import Spacer from './Spacer';
-import Nowrap from './Nowrap';
-import TinyButton from './TinyButton';
-import Btn from './Btn';
+import { Popover, Stack, Box } from '@mui/material'; 
+import { useMenu } from '../machines'; 
+import FormFooter from './FormFooter'; 
+import FormBody from './FormBody'; 
+import PropTypes from 'prop-types';
 
+/**
+ * TextPopover Component: renders a popover containing a form with text fields
+ * @param {string} children 
+ * @param {string} value 
+ * @param {string} description 
+ * @param {function} onChange 
+ * @param {string} okayText - optional, defaults to 'Okay'
+ * @param {string} icon - optional, defaults to "BorderColor"
+ * @returns {React.Component}
+ */
 
 const TextPopover = ({ 
   children,
@@ -18,10 +25,12 @@ const TextPopover = ({
   icon="BorderColor",
   ...props
 }) => {
+  // Create a menu hook
   const menu = useMenu((val) => {
     !!val && onChange({ name: props.name, target: { value: val } });
   });
-
+  
+  // Function to handle changes to the text field
   const handleChange = (event) => {
     menu.send({
       type: 'change',
@@ -29,104 +38,56 @@ const TextPopover = ({
       value: event.target.value,
     });
   };
+  
+  // Determine if there is an error
   const error = menu.state.matches('opened.confirm');
+  
   return (
     <>
       <Box onClick={(e) => menu.handleClick(e, { [props.name]: value })}>
         {children}
       </Box>
       
+      {/* Render the popover using the menu hook */}
       <Popover
         anchorEl={menu.anchorEl}
         onClose={error ? () => menu.send('ok') : menu.handleClose()}
         open={Boolean(menu.anchorEl)}
       >
         <Stack sx={{ backgroundColor: 'white' }}>
-          <Stack sx={{ p: 2, minWidth: 400 }} spacing={2}>
-            <Flex sx={{ mb: 1 }} spacing={1}>
-              <TinyButton icon={icon} />
-              <Nowrap bold small muted>
-                {props.label}{menu.dirty && <>*</>}
-              </Nowrap>
-              <Spacer />
-              {!!menu.data && (
-                <TinyButton
-                  disabled={!menu.dirty || error}
-                  color="primary"
-                  icon="Save"
-                  onClick={menu.handleClose(menu.data[props.name])}
-                />
-              )}
-              <TinyButton icon={menu.dirty ? "Circle" : "Close"} onClick={menu.handleClose()} />
-            </Flex>
+          {/* Render the form body */}
+          <FormBody
+            icon={icon}
+            error={error}
+            handleChange={handleChange}
+            menu={menu}
+            description={description}
+            {...props}
+          />
 
-            <Nowrap variant="body1">{description}</Nowrap>
+          {/* Render the form footer */}
+          <FormFooter
+            error={error}
+            menu={menu}
+            okayText={okayText}
+            {...props}
+            />
 
-            {!!menu.data && (
-              <TextField
-                autoFocus
-                onKeyUp={(e) =>
-                  e.keyCode === 13 && menu.handleClose(menu.data[props.name])(e)
-                }
-                error={error}
-                disabled={error}
-                helperText={
-                  error
-                    ? 'If you close now you will lose your unsaved changes!'
-                    : ''
-                }
-                size="small"
-                autoComplete="off"
-                value={menu.data[props.name]}
-                onChange={handleChange}
-                {...props}
-              />
-            )}
-          </Stack>
-          <Flex
-            sx={{
-              p: 2,
-              backgroundColor: (t) => t.palette.grey[200],
-              borderTop: 1,
-              borderColor: 'divider',
-            }}
-          >
-            <Spacer />
-            <Collapse orientation="horizontal" in={error}>
-              <Flex spacing={1}>
-                <Btn onClick={() => menu.send('cancel')}>
-                  cancel
-                </Btn>
-                <Btn
-                  onClick={() => menu.send('ok')}
-                  variant="contained"
-                  color="error"
-                >
-                  close anyway
-                </Btn>
-              </Flex>
-            </Collapse>
-
-            <Collapse orientation="horizontal" in={!error}>
-              <Flex spacing={1}>
-                <Btn onClick={menu.handleClose()}>cancel</Btn>
-                {!!menu.data && (
-                  <Btn
-                    disabled={!menu.dirty}
-                    onClick={menu.handleClose(menu.data[props.name])}
-                    variant="contained"
-                  >
-                    {okayText}
-                  </Btn>
-                )}
-              </Flex>
-            </Collapse>
-          </Flex>
         </Stack>
       </Popover>
     </>
   );
 };
 
+// Add propTypes to the TextPopover component
+TextPopover.propTypes = {
+  children: PropTypes.node.isRequired,
+  value: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  okayText: PropTypes.string,
+  icon: PropTypes.string
+};
 
 export default TextPopover;
+ 

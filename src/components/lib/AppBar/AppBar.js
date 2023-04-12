@@ -15,7 +15,7 @@ import {
   Shield
 } from '../../../styled';
 import MediaMenu from '../MediaMenu/MediaMenu';
-import Login from '../Login/Login';
+import Login from '../Login/Login'; 
 
 const Layout = styled(({ ...props }) => (
   <Stack
@@ -174,7 +174,7 @@ const AppBar = ({ handler, tube, small }) => {
                 </Flex>
               }
             /> 
-          </Flex>
+          </Flex> 
         </form>
 
         {!isMobileViewPort && <MediaMenu handler={handler} />} 

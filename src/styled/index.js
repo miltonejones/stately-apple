@@ -1,3 +1,5 @@
+import FormBody from './FormBody';
+import FormFooter from './FormFooter';
 import TimedSnackbar from './TimedSnackbar';
 import Shield from './Shield';
 import TimerProgress from './TimerProgress';
@@ -24,6 +26,8 @@ import Nowrap from './Nowrap';
  
 
 export {
+  FormBody,
+  FormFooter,
   TimedSnackbar,
   Shield,
   TimerProgress,

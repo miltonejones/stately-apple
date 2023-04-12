@@ -1,8 +1,16 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Popover, TextField, Box } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
 import { useMenu } from '../machines';
 
+/**
+ * A text input field with an optional icon at the beginning or end, and a popover menu that appears when the user clicks on the icon.
+ * @param {React.ComponentProps<typeof TextField>} props - The props for the MUI TextField component.
+ * @param {React.ReactNode} props.startIcon - The icon to show at the beginning of the input field.
+ * @param {React.ReactNode} props.endIcon - The icon to show at the end of the input field.
+ * @param {boolean} props.googlish - Whether the input field should have a Google-like style.
+ */
 const IconTextField = ({ endIcon, startIcon, googlish, ...props }) => { 
   
   const menu = useMenu(console.log);
@@ -85,6 +93,18 @@ const IconTextField = ({ endIcon, startIcon, googlish, ...props }) => {
     </Popover>
    </>
   );
+};
+
+IconTextField.propTypes = {
+  startIcon: PropTypes.node,
+  endIcon: PropTypes.node,
+  googlish: PropTypes.bool,
+  sx: PropTypes.object
+};
+
+IconTextField.defaultProps = {
+  googlish: false,
+  sx: {}
 };
 
 export default IconTextField;
