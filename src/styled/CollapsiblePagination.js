@@ -29,12 +29,7 @@ const CollapsiblePagination = ({ pages, page, collapsed, onChange, nolabel }) =>
         sx={{
           '&.MuiTableCell-root': {
             p: 0
-          },
-          '& .MuiTablePagination-actions': {
-            ml: 0,
-            border: 1,
-            borderColor: 'red'
-          },
+          }, 
         }}
         count={Number(pages.itemCount)}
         page={page - 1}

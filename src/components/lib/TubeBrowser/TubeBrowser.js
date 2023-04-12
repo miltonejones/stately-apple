@@ -173,7 +173,10 @@ const TubeListViewMember = ({ groupItem, groupKey, selected }) => {
     ml: 1,
   };
 
-  const pages = getPagination(categoryItems, {
+  const pages = getPagination(categoryItems
+    .sort(sorter('trackNumber', -1))
+    .sort(sorter('discNumber', 1))
+    , {
     page: handler[pageKey] || 1,
     pageSize,
   });
@@ -729,7 +732,8 @@ const CategoryMember = ({ groupKey, groupItem }) => {
         {/* collection tracks */}
         {(memberIsSelected || matchingMemberKids) &&
           categoryItems
-            .sort(sorter('trackNumber'))
+            .sort(sorter('trackNumber', -1))
+            .sort(sorter('discNumber', 1))
             .map((item) => (
               <CategoryItem
                 group={groups[groupKey][groupItem]}

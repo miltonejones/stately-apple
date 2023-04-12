@@ -33,7 +33,7 @@ sup {
 }
 
 .table-pagination-actions  { 
-  border: solid 1px lightseagreen !important;
+  /* border: solid 1px lightseagreen !important; */
   margin-left: 0 !important;
 }
 
