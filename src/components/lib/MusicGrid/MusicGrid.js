@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   styled,
   Avatar,
@@ -13,6 +14,7 @@ import {
   IconButton,
   Link,
 } from '@mui/material';
+
 import {
   Nowrap,
   TinyButton,
@@ -27,6 +29,7 @@ import {
   TextIcon,
   CollapsiblePagination
 } from '../../../styled';
+
 import { useMenu } from '../../../machines';
 import { getPagination } from '../../../util/getPagination';
 import TubeMenu from '../TubeMenu/TubeMenu';
@@ -67,11 +70,20 @@ const sortTypes = {
   wrapperType: 'Media Type', 
 };
 
-const SortMenu = ({ handler, small, handleSort, onChange }) => {
+/**
+
+Renders a sort menu component.
+@param {Object} props - The component props.
+@param {Object} props.handler - The sort handler object.
+@param {boolean} props.small - Whether the component is small.
+@param {function} props.onChange - The onChange function.
+@returns {JSX.Element} - The SortMenu component. */
+const SortMenu = ({ handler, small, onChange }) => {
   const menu = useMenu(onChange);
+  const { sortBy, sortUp } = handler; // Destructure handler object for cleaner code
 
   return (
-    <> 
+    <>
       <Pill sx={{ gap: 1 }} onClick={menu.handleClick} active>
         <TinyButton
           icon="SortByAlpha"
@@ -81,10 +93,10 @@ const SortMenu = ({ handler, small, handleSort, onChange }) => {
         {!small && (
           <>
             <Nowrap tiny hover bold sx={{ color: 'white' }}>
-              {sortTypes[handler.sortBy]}
+              {sortTypes[sortBy]}
             </Nowrap>
             <TinyButton
-              deg={handler.sortUp > 0 ? 180 : 0}
+              deg={sortUp > 0 ? 180 : 0}
               color="inherit"
               icon="KeyboardArrowDown"
             />
@@ -94,16 +106,16 @@ const SortMenu = ({ handler, small, handleSort, onChange }) => {
       <FlexMenu
         anchorEl={menu.anchorEl}
         open={Boolean(menu.anchorEl)}
-        onClose={menu.handleClose()}
+        onClose={menu.handleClose()} // Remove unnecessary parentheses
       >
         {Object.keys(sortTypes).map((key) => (
           <MenuItem key={key} onClick={menu.handleClose(key)}>
-            <Flex sx={{ width: 160 }} bold={key === handler.sortBy} hover>
+            <Flex sx={{ width: 160 }} bold={key === sortBy} hover>
               {sortTypes[key]}
               <Spacer />
-              {key === handler.sortBy && (
+              {key === sortBy && (
                 <TinyButton
-                  deg={handler.sortUp > 0 ? 180 : 0}
+                  deg={sortUp > 0 ? 180 : 0}
                   icon="KeyboardArrowDown"
                 />
               )}
@@ -113,8 +125,19 @@ const SortMenu = ({ handler, small, handleSort, onChange }) => {
       </FlexMenu>
     </>
   );
-};
+}; 
 
+
+/**
+ * A component that renders a grid view of track results.
+ *
+ * @param {Object} props - The props object.
+ * @param {Object} props.handler - An object containing the handler data.
+ * @param {Object} props.tube - An object containing tube data to render.
+ * @param {Object} props.audio - An object containing the audio data to render.
+ * @param {boolean} props.small - A boolean indicating whether the view is small or not.
+ * @returns {JSX.Element} - The music grid component.
+ */
 const MusicGrid = ({ handler, tube, audio, small }) => {
   const { results = [] } = handler.results || {};
   const { isIdle } = handler;
@@ -271,10 +294,7 @@ const MusicGrid = ({ handler, tube, audio, small }) => {
                 handleLookup={handleLookup}
                 handler={handler}
               />
-            )}
-            {/* <pre>
-        {JSON.stringify(results,0,2)}
-        </pre> */}
+            )} 
           </Card>
         )}
       </Layout>
@@ -285,14 +305,33 @@ const MusicGrid = ({ handler, tube, audio, small }) => {
 MusicGrid.defaultProps = {};
 export default MusicGrid;
 
+
+/**
+ * A component that renders a grid view of track results.
+ *
+ * @param {Object} props - The props object.
+ * @param {Object} props.pages - An object containing the page data to render.
+ * @param {Function} props.handleLookup - A function to handle lookups of track data.
+ * @param {Object} props.audio - An object containing the audio data to render.
+ * @param {boolean} props.small - A boolean indicating whether the view is small or not.
+ * @param {Object} props.tube - An object containing tube data to render.
+ * @returns {JSX.Element} - The grid view component.
+ */ 
 const GridView = ({ pages, handleLookup, audio, small, tube }) => {
+
+  // Set the number of columns for the grid based on whether small is true or not
   const columns = small ? '1fr 1fr' : '1fr 1fr 1fr 1fr 1fr';
+
+  // Set the maximum width for each track
   const maxWidth = 240;
+
   return (
     <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
+      {/* Render each visible page result */}
       {!!pages.visible &&
         pages.visible.map((res) => (
           <Frame
+            // Apply elevation and outline styles based on whether the track is currently being played
             elevation={
               audio.src === res.previewUrl && audio.state.matches('opened')
                 ? '4'
@@ -306,6 +345,7 @@ const GridView = ({ pages, handleLookup, audio, small, tube }) => {
             }}
           >
             <img
+              // Handle click event for track play
               onClick={() => {
                 audio.handlePlay(res.previewUrl, {
                   src: res.previewUrl,
@@ -323,7 +363,7 @@ const GridView = ({ pages, handleLookup, audio, small, tube }) => {
             />
             <Stack sx={{ p: 1 }}>
               <Flex>
-                {/* track name */}
+                {/* Render track name with optional "explicit" label */}
                 <Nowrap
                   color={tube.contains(res) ? 'error' : 'inherit'}
                   bold={
@@ -338,10 +378,11 @@ const GridView = ({ pages, handleLookup, audio, small, tube }) => {
 
                 <Spacer />
 
+                {/* Render menu for track actions */}
                 <TubeMenu items={pages.items} tube={tube} track={res} />
               </Flex>
 
-              {/* album name */}
+              {/* Render album name */}
               <Nowrap
                 hover
                 onClick={() => handleLookup(res.collectionId, 'song', 'trackNumber')}
@@ -353,7 +394,7 @@ const GridView = ({ pages, handleLookup, audio, small, tube }) => {
               </Nowrap>
 
               <Flex>
-                {/* artist name */}
+                {/* Render artist name */}
                 <Nowrap
                   hover
                   onClick={() => handleLookup(res.artistId, 'song', 'collectionName')}
@@ -366,7 +407,7 @@ const GridView = ({ pages, handleLookup, audio, small, tube }) => {
                 </Nowrap>
                 <Spacer />
 
-                {/* track price */}
+                {/* Render track price with a link to the track view */}
                 <Nowrap
                   onClick={() => window.open(res.trackViewUrl)}
                   hover
@@ -384,6 +425,7 @@ const GridView = ({ pages, handleLookup, audio, small, tube }) => {
   );
 };
 
+ 
 const ListView = ({
   pages,
   audio,
@@ -393,56 +435,66 @@ const ListView = ({
   handleLookup,
   handler,
 }) => {
-  const coreCols = handler.selectMode
-    ? '40px 40px 24px 24px 1fr'
-    : '40px 24px 24px 1fr';
-  const columns = coreCols + (small ? '' : ' 1fr 1fr 1fr');
 
-  const downloadableItems = pages.items?.filter(
-    (item) => !(handler.excludedItems && handler.excludedItems[item.previewUrl])
-  );
+// Determine core columns based on whether selectMode is enabled or not.
+const coreCols = handler.selectMode ? '40px 40px 24px 24px 1fr' : '40px 24px 24px 1fr';
 
-  const handleBatch = () => {
-    const batch = downloadableItems?.map((item) => ({
-      ...item,
-      param: `${item.trackName} ${item.artistName}`,
-    }));
+// Determine columns based on core columns and whether small is true or not.
+const columns = small ? coreCols : coreCols + ' 1fr 1fr 1fr';
 
-    tube.send({
-      type: 'BATCH',
-      batch,
-    });
-    handler.setProp('selectMode', false);
-  };
+// Filter out excluded items from the items list.
+const downloadableItems = pages.items?.filter((item) => !(handler.excludedItems && handler.excludedItems[item.previewUrl]));
 
-  const handleSelectMode = () => {
-    handler.setProp('selectMode', !handler.selectMode); 
-  };
+// Handle batch download of selected items.
+const handleBatch = () => {
+  const batch = downloadableItems?.map((item) => ({
+    ...item,
+    param: `${item.trackName} ${item.artistName}`,
+  }));
+  tube.send({
+    type: 'BATCH',
+    batch,
+  });
+  // Disable selectMode after handling batch.
+  handler.setProp('selectMode', false);
+};
 
-  const handleExclude = (id) => {
-    handler.setProp('excludedItems', {
-      ...handler.excludedItems,
-      [id]: !(handler.excludedItems && handler.excludedItems[id]),
-    });  
-  };
+// Toggle selectMode on or off.
+const handleSelectMode = () => {
+  handler.setProp('selectMode', !handler.selectMode); 
+};
 
-  const headerNames = Object.keys(headers).slice(
-    0,
-    columns.split(' ').length - (handler.selectMode ? 3 : 2)
-  );
+// Toggle excluded status of an item with a given id.
+const handleExclude = (id) => {
+  handler.setProp('excludedItems', {
+    ...handler.excludedItems,
+    [id]: !(handler.excludedItems && handler.excludedItems[id]),
+  });  
+};
+
+// Set header names based on columns and whether selectMode is enabled or not.
+const headerNames = Object.keys(headers).slice(0, columns.split(' ').length - (handler.selectMode ? 3 : 2));
 
   return (
     <>
  
       <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
+
+
+        {/* list view header columns */}
+
+
+        {/* spacer column for select mode */}
         {!!handler.selectMode && <Box />}
 
+        {/* column header to toggle select mode */}
         <Switch
           checked={handler.selectMode}
           onClick={handleSelectMode}
           size="small"
         />
 
+        {/* column header to add selected tracks */}
         {!tube.batch?.length && (
           <ConfirmPop
             onChange={(ok) => !!ok && handleBatch()}
@@ -456,8 +508,12 @@ const ListView = ({
             />
           </ConfirmPop>
         )}
+
+        {/* waiting column header when tubeloader is running */}
         {!!tube.batch?.length && <CircularProgress size={18} />}
 
+
+        {/* list view data header columns */}
         {headerNames.map((key) => (
           <Flex spacing={1}>
             <Nowrap
@@ -482,11 +538,15 @@ const ListView = ({
         ))}
       </Columns>
 
+      {/* list view rows */}
       {!!pages.visible &&
         pages.visible.map((res) => (
           <Columns sx={{ m: 1 }} spacing={1} columns={columns}>
+
+            {/* track cover art column  */}
             <Avatar src={res.artworkUrl100} alt={res.trackName} />
 
+            {/* row selector checkbox column  */}
             {!!handler.selectMode && (
               <Switch
                 checked={
@@ -500,8 +560,10 @@ const ListView = ({
               />
             )}
 
+            {/* youtube status indicator column  */}
             <TubeMenu items={pages.items} tube={tube} track={res} />
 
+            {/* track status indicator column */}
             <TinyButton
               icon={
                 (audio.src === res.previewUrl &&
@@ -512,8 +574,11 @@ const ListView = ({
               }
             />
 
-            {/* track name */}
+            {/* first column is visible in all viewports, collapsing 
+            to show all columns in mobile view  */}
             <Stack sx={{ maxWidth: '80vw', overflow: 'hidden' }}>
+
+              {/* track name */}
               <Nowrap
                 muted={!tube.contains(res)}
                 bold={
@@ -532,22 +597,33 @@ const ListView = ({
                 }}
               >
                 {res.trackName || res.collectionName}{' '}
+
+                {/* explicitness marker */}
                 {res.trackExplicitness === 'explicit' && <sup>E</sup>}{' '}
               </Nowrap>
+
+              {/* columns collapsed in mobile view */}
               {!!small && (
                 <Flex spacing={1} sx={{ maxWidth: 'calc(100vw - 160px)' }}>
                   <Nowrap small>
+
+                    {/* artist name  */}
                     <Link onClick={() => handleLookup(res.artistId, 'song', 'collectionName')}>
                       {res.artistName}
                     </Link>{' '}
                     -{' '}
+
+                    {/* album name */}
                     <Link
                       onClick={() => handleLookup(res.collectionId, 'song', 'trackNumber')}
                     >
                       {res.collectionName}
                     </Link>
+
                   </Nowrap>
                   <Spacer />
+
+                  {/* track price */}
                   <Nowrap
                     hover
                     wrap
@@ -560,6 +636,7 @@ const ListView = ({
               )}
             </Stack>
 
+            {/* added columns only visible in desktop mode */}
             {!small && (
               <>
                 {/* artist name  */}
@@ -579,7 +656,4 @@ const ListView = ({
     </>
   );
 };
-
-/**
- *
- */
+ 

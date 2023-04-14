@@ -3,6 +3,8 @@
   overflow: hidden;
   background-color: white;
 }
+
+
 *{
   box-sizing: border-box;
  } 
@@ -15,6 +17,17 @@
   justify-content: center;
   padding-bottom: 15vw;
 }
+
+@media (max-width: 768px) {
+  .App {
+    height: calc(100svh - var(--bottom-bar-offset)); 
+  }
+  .App.centered {
+    height: calc(100svh - var(--bottom-bar-offset) - var(--top-bar-offset));
+  }
+}
+
+
 
 sup {
   background-color: red;

@@ -20,8 +20,13 @@ const TinyBox = styled(Box)(({ theme, width, active }) => ({
   backgroundColor: active ? theme.palette.primary.dark : theme.palette.common.white,
   padding: theme.spacing(0, 0.5),
   color: active ? theme.palette.common.white : theme.palette.primary.dark,
-  border: `solid 1px ${theme.palette.primary.main}`,
-  borderRadius: theme.spacing(active ? 0.5 : 0, active ? 0 : 0.5),
+  border: `solid 1px ${theme.palette.primary.main}`, 
+  '&:last-child': {
+    borderRadius: theme.spacing(0, .5, .5, 0)
+  },
+  '&:first-child': {
+    borderRadius: theme.spacing(.5, 0, 0, .5)
+  },
   '& .inner': {
     width: 0,
     overflow: "hidden",
