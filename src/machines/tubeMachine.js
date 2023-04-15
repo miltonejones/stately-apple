@@ -3,6 +3,15 @@ import { useMachine } from "@xstate/react";
 import { Auth, Storage } from "aws-amplify";
 // import { objectGet, objectPut } from "../util/objectPut"; 
 
+export const DJ_OPTIONS = {
+  BOOMBOT: 1,
+  USERNAME: 2,
+  TIME: 4,
+  UPNEXT: 8,
+  RANDOM: 16,
+  OFF: 32
+}
+
 
 // add machine code
 const tubeMachine = createMachine(
@@ -15,6 +24,7 @@ const tubeMachine = createMachine(
       track: {},
       playlists: [],
       response_index: 0,
+      options: 15,
       pins: [],
       view: 'list'
     },
@@ -788,6 +798,11 @@ export const useTube = (onChange, onClose) => {
         const { userDataKey } = context.user; 
         const filename = `web/${userDataKey}.json`;
 
+        const localPins =  JSON.parse(localStorage.getItem("tb-pins") || "[]");
+
+
+
+
         // const response = await Storage.head(filename);
         // console.log ({
         //   response
@@ -807,7 +822,10 @@ export const useTube = (onChange, onClose) => {
   
               reader.onload = () => {
                 const json = JSON.parse(reader.result);
-                // console.log ('JSON file retrieved:', json);
+                console.log ('JSON file retrieved "%s":', filename, json);
+                if (localPins?.length > json?.length) {
+                  return resolve(localPins);
+                }
                 resolve(json)
               };
             } catch (ex) {
@@ -869,3 +887,27 @@ const searchTubeAPI = async (param) => {
 };
     
 
+
+
+// [
+  
+
+/**
+    {
+      
+      "artworkUrl100":"https://is5-ssl.mzstatic.com/image/thumb/Music124/v4/a7/7f/88/a77f8841-e047-feaa-b530-fdf6a6bb9408/00606949089726.rgb.jpg/100x100bb.jpg",
+      "trackTimeMillis":283333,
+      "previewUrl":"https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/e2/b8/44/e2b8447f-14e8-66ee-59b2-5d2272693836/mzaf_11119025606964340964.plus.aac.p.m4a",
+      "artistId":1052456,"trackName":"Nasty Mind (feat. Truth Hurts)",
+      "title":"D12 - Nasty Mind (feat. Truth Hurts)","collectionName":"Devils Night","artistViewUrl":"https://music.apple.com/us/artist/d12/1052456?uo=4",
+      "discNumber":1,"trackCount":19,"param":"Nasty Mind (feat. Truth Hurts) D12","tubekey":"https://www.youtube.com/watch?v=XbjFZa6Vxys",
+      "wrapperType":"track","collectionId":1440904746,"trackExplicitness":"explicit",
+      "collectionViewUrl":"https://music.apple.com/us/album/nasty-mind-feat-truth-hurts/1440904746?i=1440905064&uo=4",
+      "contentAdvisoryRating":"Explicit","trackNumber":5,"trackId":1440905064,
+      "playlists":["Rap","Upbeat"],"discCount":1,"primaryGenreName":"Pop","trackPrice":1.29,
+      "trackViewUrl":"https://music.apple.com/us/album/nasty-mind-feat-truth-hurts/1440904746?i=1440905064&uo=4",
+      "artistName":"D12"
+    }
+
+ * 
+ */

@@ -11,20 +11,29 @@ import {
   Button,
   Avatar,  
   Stack,
+  Tabs,
+  Tab,
+  Switch
 } from '@mui/material';
  
 import { Auth, Storage } from 'aws-amplify';
-import { TextIcon, Flex } from '../../../styled';
+import { TextIcon, Flex, Nowrap } from '../../../styled';
+import { DJ_OPTIONS }  from '../../../machines';
+
+
  
 
-const ProfileDialog = ({ user, onChange }) => { 
+const ProfileDialog = ({ user, onChange, tube }) => { 
 
   // state variables for form fields
   const [firstName, setFirstName] = useState(user.attributes.given_name);
   const [lastName, setLastName] = useState(user.attributes.family_name);
   const [email, setEmail] = useState(user.attributes.email);
   const [photoUrl, setPhotoUrl] = useState(user.attributes.picture);
-
+  const [value, setValue] = useState(0);
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
   // method to handle file selection for photo input
   const handlePhotoSelection = async (e) => {
     const file = e.target.files[0];
@@ -55,8 +64,32 @@ const ProfileDialog = ({ user, onChange }) => {
     onChange && onChange(photoUrl) 
   };
 
+  const djProps = {
+    [DJ_OPTIONS.OFF]: 'Turn off the DJ',
+    [DJ_OPTIONS.USERNAME]: 'Say the logged in users name',
+    [DJ_OPTIONS.TIME]: 'Mention the time',
+    [DJ_OPTIONS.UPNEXT]: 'Talk about upcoming tracks',
+    [DJ_OPTIONS.RANDOM]: 'Randomize DJ voices',
+    [DJ_OPTIONS.BOOMBOT]: 'Say station name',
+  }
+
+  const handleDJ = (key) => {
+    tube.send({
+      type: 'CHANGE',
+      key: 'options',
+      value: tube.options & key 
+        ? tube.options - key 
+        : tube.options + Number(key)
+    })
+  }
+
   return (
     <div> 
+       <Tabs value={value} onChange={handleChange}>
+        <Tab label="Profile" />
+        <Tab disabled={!tube?.user} label="DJ Control" />
+      </Tabs>
+      
       <Flex spacing={1} sx={{ m: 1 }}>
           <Avatar 
             alt={`${user.attributes.given_name} ${user.attributes.family_name}`}
@@ -81,7 +114,7 @@ const ProfileDialog = ({ user, onChange }) => {
 
       </Flex>
 
-        <form onSubmit={handleSubmit} >
+       {value === 0 && <form onSubmit={handleSubmit} >
           <Stack spacing={1}>
             <TextField
               size="small"
@@ -114,7 +147,21 @@ const ProfileDialog = ({ user, onChange }) => {
 
           </Stack>
 
-        </form> 
+        </form> }
+
+      {value === 1 && <Stack>
+         {Object.keys(djProps).map(key => <Flex 
+            onClick={() => handleDJ(key)}
+            key={key}>
+          <Switch 
+            disabled={ key !== DJ_OPTIONS.OFF && !!(tube.options & DJ_OPTIONS.OFF)}
+            checked={!!(tube.options & key)} />
+          <Nowrap small>
+            {djProps[key]}
+          </Nowrap>
+         </Flex>)}
+        </Stack>}
+      
     </div>
   );
 };

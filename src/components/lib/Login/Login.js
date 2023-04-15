@@ -137,7 +137,7 @@ const Login = ({ children, ...props }) => {
         onClose={modal.handleClose()}
      > 
       <Box sx={{ p: 2 }}>
-      <ProfileDialog user={authenticator.user} onChange={modal.handleClose()} />
+      <ProfileDialog user={authenticator.user} onChange={modal.handleClose()} tube={props.tube}/>
       </Box>
       </FlexMenu>
 

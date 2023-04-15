@@ -7,8 +7,8 @@
  * @returns {boolean} - True if the targetString includes the searchString, false otherwise.
  */
 export const contains = (targetString, searchString) => {
-  const targetLower = targetString.toLowerCase();
-  const searchLower = searchString.toLowerCase();
+  const targetLower = targetString?.toLowerCase();
+  const searchLower = searchString?.toLowerCase();
   return typeof targetString === 'string' &&
          typeof searchString === 'string' && 
          targetLower.indexOf(searchLower) > -1;
