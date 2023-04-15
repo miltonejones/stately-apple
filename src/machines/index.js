@@ -1,7 +1,8 @@
 import { useTimer } from './timerMachine'; 
 import { useAuthenticator, AuthContext } from './authenticatorMachine';
 import { useTubeWatch } from './tubeWatchMachine';
-import { useTube, DJ_OPTIONS } from './tubeMachine';
+import { useTube } from './tubeMachine';
+import { DJ_OPTIONS } from '../util/djOptions';
 import { useMenu } from './menuMachine'; 
 import { useAudio } from './audioMachine';
 import { useApple } from './appleMachine';

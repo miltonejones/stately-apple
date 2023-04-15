@@ -13,7 +13,8 @@ import {
   Stack,
   Tabs,
   Tab,
-  Switch
+  Switch,
+  Divider,
 } from '@mui/material';
  
 import { Auth, Storage } from 'aws-amplify';
@@ -70,6 +71,7 @@ const ProfileDialog = ({ user, onChange, tube }) => {
     [DJ_OPTIONS.TIME]: 'Mention the time',
     [DJ_OPTIONS.UPNEXT]: 'Talk about upcoming tracks',
     [DJ_OPTIONS.RANDOM]: 'Randomize DJ voices',
+    [DJ_OPTIONS.SHOW]: 'Show DJ text on screen',
     [DJ_OPTIONS.BOOMBOT]: 'Say station name',
   }
 
@@ -90,32 +92,39 @@ const ProfileDialog = ({ user, onChange, tube }) => {
         <Tab disabled={!tube?.user} label="DJ Control" />
       </Tabs>
       
-      <Flex spacing={1} sx={{ m: 1 }}>
-          <Avatar 
-            alt={`${user.attributes.given_name} ${user.attributes.family_name}`}
-            src={photoUrl}
-          />
-          <label htmlFor="photo-input">
-            <input
-              accept="image/*" 
-              id="photo-input"
-              type="file"
-              onChange={handlePhotoSelection}
+      {value === 0 && <>
+        <Flex spacing={1} sx={{ m: 1 }}>
+            <Avatar 
+              alt={`${user.attributes.given_name} ${user.attributes.family_name}`}
+              src={photoUrl}
             />
-            <Button 
-              variant="contained"
-              color="primary"
-              startIcon={<TextIcon icon="PhotoCamera" />}
-              component="span"
-            >
-              Upload Photo
-            </Button>
-          </label>
+            <label htmlFor="photo-input">
+              <input
+                accept="image/*" 
+                id="photo-input"
+                type="file"
+                onChange={handlePhotoSelection}
+              />
+            </label>
 
-      </Flex>
+        </Flex>
+        <Flex sx={{ m: 1 }}>
+
+        <Button 
+          variant="contained"
+          color="primary"
+          startIcon={<TextIcon icon="PhotoCamera" />}
+          component="span"
+        >
+          Upload Photo
+        </Button>
+
+        </Flex>
+        <Divider sx={{ m: 2 }} />
+      </>}
 
        {value === 0 && <form onSubmit={handleSubmit} >
-          <Stack spacing={1}>
+          <Stack sx={{ m: 1 }} spacing={1}>
             <TextField
               size="small"
               label="First Name"

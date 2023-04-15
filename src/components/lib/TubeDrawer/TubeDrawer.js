@@ -11,6 +11,7 @@ import {
   LinearProgress,
   Collapse,
   Popover,
+  Drawer,
 } from '@mui/material';
 
 import {
@@ -27,6 +28,7 @@ import {
   // TimedSnackbar,
   Shield
 } from '../../../styled';
+import moment from 'moment';
 
 import { useMenu, DJ_OPTIONS } from '../../../machines';
 import { collatePins } from '../../../util/collatePins';
@@ -380,8 +382,65 @@ const TubeDrawer = ({ small, menu, tube }) => {
     return nextTracks?.slice(0, 10);
   } 
 
+  const talk = (text) => {
+    const randomizeVoice = tube.options & DJ_OPTIONS.RANDOM;
+    const showOutput = tube.options & DJ_OPTIONS.SHOW
+    !!text && speek(text, randomizeVoice, (value) => {
+      if (!showOutput) return; 
+      tube.send({
+        type: 'CHANGE',
+        key: 'vocab',
+        value
+      })
+    })
+  }
+
+  const introduce = async () => {
+
+    if (!pin) { 
+      if (track) {  
+        const { Introduction } = await getIntro(track.trackName, track.artistName,  [], firstName, tube.options, !0);    
+        !!Introduction && talk(Introduction)
+      }
+      return
+    };
+
+    if(tube.options & DJ_OPTIONS.OFF) return;
+
+
+    if (tube.intros && tube.intros[pin.trackName]) {
+      const { Introduction } = tube.intros[pin.trackName];
+      !!Introduction && talk(Introduction)
+    } else { 
+      const { Introduction } = await getIntro(pin.trackName, pin.artistName,  getUpcoming(1), firstName, tube.options, null, 8);    
+      !!Introduction && talk(Introduction)
+    } 
+
+    if (!tube.items) return;
+
+    const nextPin = tube.items[selectedIndex + 1];
+    if (!nextPin) return;
+
+    const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName,  getUpcoming(2), firstName, tube.options, null, 4);
+    !!nextIntro && tube.send({
+      type: 'CHANGE',
+      key: 'intros',
+      value: {
+        ...tube.intros,
+        [nextIntro.title]: nextIntro
+      }
+    }) 
+  }
+
   return (
     <>
+
+      <Drawer anchor="bottom" open={!!tube.vocab}>
+        <Box sx={{ p: 2, fontSize: '0.85rem', color: 'text.secondary'}}>
+         <b>Boombot DJ: </b> {tube.vocab}
+        </Box> 
+      </Drawer>
+
       <Video
         folded={tube.folded}
         small={busy}
@@ -483,43 +542,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
                 <Stack spacing={2}>
                
                   <Embed
-                    onStart={async (e) => {
-                      const randomizeVoice = tube.options & DJ_OPTIONS.RANDOM;
-                      if (!pin) { 
-                        if (track) {  
-                          const { Introduction } = await getIntro(track.trackName, track.artistName,  [], firstName, tube.options, !0);    
-                          !!Introduction && speek(Introduction, randomizeVoice)
-                        }
-                        return
-                      };
-
-                      if(tube.options & DJ_OPTIONS.OFF) return;
-
-
-                      if (tube.intros && tube.intros[pin.trackName]) {
-                        const { Introduction } = tube.intros[pin.trackName];
-                        !!Introduction && speek(Introduction, randomizeVoice)
-                      } else { 
-                        const { Introduction } = await getIntro(pin.trackName, pin.artistName,  getUpcoming(1), firstName, tube.options);    
-                        !!Introduction && speek(Introduction, randomizeVoice)
-                      } 
-
-                      if (!tube.items) return;
-
-                      const nextPin = tube.items[selectedIndex + 1];
-                      if (!nextPin) return;
-
-                      const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName,  getUpcoming(2), firstName, tube.options);
-                      !!nextIntro && tube.send({
-                        type: 'CHANGE',
-                        key: 'intros',
-                        value: {
-                          ...tube.intros,
-                          [nextIntro.title]: nextIntro
-                        }
-                      })
-
-                    }}
+                    onStart={introduce}
                     small={small}
                     onEnd={() => {
                       tube.send('NEXT');
@@ -592,7 +615,7 @@ const Embed = ({ onEnd, onStart, small, src }) => {
     height: small ? window.innerWidth * 0.5625 : IFRAME_HEIGHT,
     width: small ? window.innerWidth - 32 : IFRAME_WIDTH,
     playerVars: {
-      // https://developers.google.com/youtube/player_parameters
+      // https://developers.google.com/youtube/player_parameters onReady
       autoplay: 1,
     },
   };
@@ -604,7 +627,7 @@ function getRandomBoolean() {
 }
 
 
-const getIntro = async (title, artist, upcoming = [], firstName, options, isNew) => {
+const getIntro = async (title, artist, upcoming = [], firstName, options, isNew, offset = 4) => {
   const nextup = upcoming
     .slice(0, 2)
     .map(f => `${f.trackName} by ${f.artistName}`).join(' and ');
@@ -615,10 +638,10 @@ const getIntro = async (title, artist, upcoming = [], firstName, options, isNew)
     const sayUpnext = options & DJ_OPTIONS.UPNEXT;
 
   const instructions = `for the song "${title}" by "${artist}" write an introduction to the song that a SpeechSynthesisUtterance object
-        could read before the vocals start, allowing 4 seconds for the SpeechSynthesisUtterance object to load.   
+        could read  before the vocals start.   
         ${!!isNew ? "remind user to add this song to favorites by clicking the pin icon" : ""}
         ${!!sayBoombot && getRandomBoolean() ? "Mention Boombot Radio in the introduction." : ""}
-        ${!!sayTime && getRandomBoolean() ? ("The introduction should be topical to the time of day which is" + new Date().toLocaleTimeString()) : ""}
+        ${!!sayTime && getRandomBoolean() ? ("The introduction should be topical to the time of day which is" + moment().format('hh:mm a')) : ""}
         ${!!sayUpnext && !!nextup?.length && getRandomBoolean() ?  ("Mention the upcoming tracks " + nextup) : ""} 
         ${!!sayUsername && !!firstName && 
           firstName !== undefined && 
@@ -638,6 +661,8 @@ const getIntro = async (title, artist, upcoming = [], firstName, options, isNew)
     const { message } = choices[0]; 
 
     const dj = JSON.parse(message.content);
+
+    console.log (dj.Introduction, dj.Introduction.length)
 
     return {
       ...dj,
@@ -692,7 +717,7 @@ const generateText = async (messages, temperature, max_tokens = 128) => {
  * @param {string} [lang="en-US"] - The language in which the message should be spoken. Defaults to "en-US".
  * @returns {void}
  */
-const speek = (msg, rand) => {
+const speek = (msg, rand, emitText) => {
   const synth = window.speechSynthesis;
   const utterThis = new SpeechSynthesisUtterance();
   const voices = synth.getVoices();
@@ -706,6 +731,20 @@ const speek = (msg, rand) => {
   utterThis.lang =  "en-US";
   utterThis.text = msg
   utterThis.rate = 1.1; 
+
+
+  utterThis.onstart = () => {
+    emitText && emitText(msg);
+  };
+
+
+  // utterThis.onboundary = (event) => {
+  //   const spokenText = utterThis.text.slice(0, event.charIndex);
+  //   emitText && emitText(spokenText);
+  // };
+  utterThis.onend = () => {
+    emitText && emitText(null);
+  };
   if (randomVoice && rand) {
     utterThis.voice = randomVoice;
   }

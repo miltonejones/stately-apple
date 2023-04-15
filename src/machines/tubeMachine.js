@@ -1,16 +1,9 @@
 import { createMachine, assign } from "xstate";
 import { useMachine } from "@xstate/react";
 import { Auth, Storage } from "aws-amplify";
-// import { objectGet, objectPut } from "../util/objectPut"; 
+import { getIntro} from "../util/getIntro";  
 
-export const DJ_OPTIONS = {
-  BOOMBOT: 1,
-  USERNAME: 2,
-  TIME: 4,
-  UPNEXT: 8,
-  RANDOM: 16,
-  OFF: 32
-}
+
 
 
 // add machine code
@@ -24,7 +17,7 @@ const tubeMachine = createMachine(
       track: {},
       playlists: [],
       response_index: 0,
-      options: 15,
+      options: 31,
       pins: [],
       view: 'list'
     },
@@ -135,7 +128,41 @@ const tubeMachine = createMachine(
       },
     },
 
+
+    // emit: {
+    //   description: "Emit search responses to calling component and return to idle state.",
+    //   initial: "introduce",
+    //   states: {
+    //     introduce: {
+    //       invoke: {
+    //         src: "loadIntro",
+    //         onDone: [
+    //           {
+    //             target: "emit",
+    //             actions: "assignIntro",
+    //           },
+    //         ],
+    //       },
+    //     },
+    //     emit: {
+    //       invoke: {
+    //         src: "emitResponse",
+    //         onDone: [
+    //           {
+    //             target: "#youtube_search.idle",
+    //             cond: "emptyBatch",
+    //           },
+    //           {
+    //             target: "#youtube_search.batch_lookup",
+    //             description: "If there is a batch pending, move to batch_lookup",
+    //           },
+    //         ],
+    //       },
+    //     },
+    //   },
+    // },
  
+
       emit: {
         description: "Emit search responses to calling component and return to idle state.",
         invoke: {
@@ -463,6 +490,15 @@ const tubeMachine = createMachine(
         track: {},
         open: false
       })),
+      assignIntro: assign((context, event) => {
+        const { track, intros } = context;
+        return {
+          intros: {
+            ...intros,
+            [track.trackName]: event.data
+          }
+        } 
+      }),
       mergeImporteditems: assign((context, event) => {
         const { items } = event;
         
@@ -770,6 +806,20 @@ export const useTube = (onChange, onClose) => {
         onChange && onChange(context.response);
       },
 
+      loadIntro: async (context) => {
+        const { user, items, options, track } = context;
+        
+
+        const firstName = user?.attributes?.given_name;
+        const selectedIndex = items?.map(i => i.trackId).indexOf(track.trackId);
+        const nextTracks = items?.slice(selectedIndex + 1);
+        const upcoming = nextTracks?.slice(0, 10);
+
+         const { Introduction } = await getIntro(track.trackName, track.artistName, upcoming, firstName, options);    
+         return Introduction;
+
+      },
+
       // dynamoPersist is an asynchronous function that saves the state of the app to DynamoDB.
       // It returns a promise that resolves when the save is complete.
       dynamoPersist: async (context) => {
@@ -779,7 +829,7 @@ export const useTube = (onChange, onClose) => {
 
         try {
           const result = await Storage.put(filename, JSON.stringify(context.pins));
-          console.log('File uploaded successfully with key:', result.key, context.pins);
+          // console.log('File uploaded successfully with key:', result.key, context.pins);
           await new Promise(r => setTimeout(r, 2999));
           // console.log (' OK now lets %csee', 'color: lime')
           return result;
@@ -822,7 +872,7 @@ export const useTube = (onChange, onClose) => {
   
               reader.onload = () => {
                 const json = JSON.parse(reader.result);
-                console.log ('JSON file retrieved "%s":', filename, json);
+                // console.log ('JSON file retrieved "%s":', filename, json);
                 if (localPins?.length > json?.length) {
                   return resolve(localPins);
                 }
