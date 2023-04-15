@@ -371,6 +371,13 @@ const TubeDrawer = ({ small, menu, tube }) => {
   const calculatedHeight = window.innerWidth * 0.5625;
   const showResultList = !pin && tube.response?.pages?.length > 1;
 
+  const selectedIndex = tube.items?.map(i => i.tubekey).indexOf(selectedItem.href)
+
+  const getUpcoming = (index) => {
+    const nextTracks = tube.items?.slice(selectedIndex + index)
+    return nextTracks?.slice(0, 10)
+  } 
+
   return (
     <>
       <Video
@@ -482,16 +489,16 @@ const TubeDrawer = ({ small, menu, tube }) => {
                         const { Introduction, Speechtime } = tube.intros[pin.trackName];
                         !!Introduction && speek(Introduction, Speechtime)
                       } else { 
-                        const { Introduction, Speechtime } = await getIntro(pin.trackName, pin.artistName);    
+                        const { Introduction, Speechtime } = await getIntro(pin.trackName, pin.artistName,  getUpcoming(1));    
                         !!Introduction && speek(Introduction, Speechtime)
                       } 
 
                       if (!tube.items) return;
 
-                      const nextPin = tube.items[tube.response_index + 1];
+                      const nextPin = tube.items[selectedIndex + 1];
                       if (!nextPin) return;
 
-                      const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName);
+                      const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName,  getUpcoming(2));
                       !!nextIntro && tube.send({
                         type: 'CHANGE',
                         key: 'intros',
@@ -528,8 +535,9 @@ const TubeDrawer = ({ small, menu, tube }) => {
                           </Sizewrap>
                         </Flex>
                         <Sizewrap mobile={small} offset={120} small muted>
+                     
                           {pin.artistName}
-                        
+                     
                         </Sizewrap>
                         {/* <Sizewrap mobile={small} offset={120} small muted>
                           {pin.collectionName}
@@ -553,6 +561,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
           {tube.state.meta.message}
         </TimedSnackbar>} */}
 
+                     {/* {JSON.stringify(tube.intros)} */}
       <MessageSnackbar
         progress={tube.batch_progress}
         onClose={() => tube.send('CANCEL')}
@@ -583,9 +592,22 @@ const Embed = ({ onEnd, onStart, small, src }) => {
   return <YouTube onPlay={onStart} videoId={regex[1]} opts={opts} onEnd={onEnd} />;
 };
 
-const getIntro = async (title, artist) => {
+function getRandomBoolean() {
+  return Math.random() < 0.5;
+}
+
+
+const getIntro = async (title, artist, upcoming = []) => {
+  const nextup = upcoming
+    .slice(0, 2)
+    .map(f => `${f.trackName} by ${f.artistName}`).join(' and ');
+
   const instructions = `for the song "${title}" by "${artist}" write an introduction to the song that a SpeechSynthesisUtterance object
-        could read before the vocals start, allowing 4 seconds for the SpeechSynthesisUtterance object to load. return the answer as in Intro in this format 
+        could read before the vocals start, allowing 4 seconds for the SpeechSynthesisUtterance object to load.  
+        ${getRandomBoolean() ? "" : "Mention Boombot Radio in the introduction."}
+        ${getRandomBoolean() ? "" : ("The introduction should be topical to the time of day which is" + new Date().toLocaleTimeString())}
+        ${getRandomBoolean() ? "" : ("Mention the upcoming tracks " + nextup)} 
+        return the answer as in Intro in this format 
         interface Intro { 
           Introduction: string;  
           Speechtime: number; // number of seconds before vocals
@@ -593,7 +615,7 @@ const getIntro = async (title, artist) => {
       return only the JSON object with no additional comment.`;
 
     const create = q => ([{"role": "user", "content": q}]);
-    const intro = await generateText (create(instructions), 1, 96)
+    const intro = await generateText (create(instructions), 1, 128)
     const { choices } = intro;
 
     if (!choices?.length) return false;
