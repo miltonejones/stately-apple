@@ -371,7 +371,9 @@ const TubeDrawer = ({ small, menu, tube }) => {
   const calculatedHeight = window.innerWidth * 0.5625;
   const showResultList = !pin && tube.response?.pages?.length > 1;
 
-  const selectedIndex = tube.items?.map(i => i.tubekey).indexOf(selectedItem.href)
+  const selectedIndex = tube.items?.map(i => i.tubekey).indexOf(selectedItem.href);
+
+  const firstName = tube.user?.attributes?.given_name;
 
   const getUpcoming = (index) => {
     const nextTracks = tube.items?.slice(selectedIndex + index)
@@ -489,7 +491,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
                         const { Introduction, Speechtime } = tube.intros[pin.trackName];
                         !!Introduction && speek(Introduction, Speechtime)
                       } else { 
-                        const { Introduction, Speechtime } = await getIntro(pin.trackName, pin.artistName,  getUpcoming(1));    
+                        const { Introduction, Speechtime } = await getIntro(pin.trackName, pin.artistName,  getUpcoming(1), firstName);    
                         !!Introduction && speek(Introduction, Speechtime)
                       } 
 
@@ -498,7 +500,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
                       const nextPin = tube.items[selectedIndex + 1];
                       if (!nextPin) return;
 
-                      const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName,  getUpcoming(2));
+                      const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName,  getUpcoming(2), firstName);
                       !!nextIntro && tube.send({
                         type: 'CHANGE',
                         key: 'intros',
@@ -557,11 +559,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
         </Collapse>
       </Video>
  
-      {/* {!!Object.keys(tube.state.meta).length && <TimedSnackbar handler={tube}>
-          {tube.state.meta.message}
-        </TimedSnackbar>} */}
-
-                     {/* {JSON.stringify(tube.intros)} */}
+      
       <MessageSnackbar
         progress={tube.batch_progress}
         onClose={() => tube.send('CANCEL')}
@@ -597,16 +595,17 @@ function getRandomBoolean() {
 }
 
 
-const getIntro = async (title, artist, upcoming = []) => {
+const getIntro = async (title, artist, upcoming = [], firstName) => {
   const nextup = upcoming
     .slice(0, 2)
     .map(f => `${f.trackName} by ${f.artistName}`).join(' and ');
 
   const instructions = `for the song "${title}" by "${artist}" write an introduction to the song that a SpeechSynthesisUtterance object
-        could read before the vocals start, allowing 4 seconds for the SpeechSynthesisUtterance object to load.  
+        could read before the vocals start, allowing 4 seconds for the SpeechSynthesisUtterance object to load.   
         ${getRandomBoolean() ? "" : "Mention Boombot Radio in the introduction."}
         ${getRandomBoolean() ? "" : ("The introduction should be topical to the time of day which is" + new Date().toLocaleTimeString())}
-        ${getRandomBoolean() ? "" : ("Mention the upcoming tracks " + nextup)} 
+        ${!!nextup?.length && getRandomBoolean() ? "" : ("Mention the upcoming tracks " + nextup)} 
+        ${!!firstName && getRandomBoolean() ? "" : ("Mention a listener named " + firstName)} 
         return the answer as in Intro in this format 
         interface Intro { 
           Introduction: string;  

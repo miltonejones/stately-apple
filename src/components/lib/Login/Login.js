@@ -1,5 +1,5 @@
 import React from 'react';
-import { styled, Box, Card, Avatar, Popover, Stack } from '@mui/material';
+import { styled, Box, Dialog, Card, MenuItem, Avatar, Popover, Stack } from '@mui/material';
 import { AuthContext, useMenu } from '../../../machines';
 import {
   Nowrap,
@@ -10,8 +10,9 @@ import {
   IconTextField,
   TextIcon,
   TinyButton,
-  ConfirmPop,
+  // ConfirmPop,
 } from '../../../styled';
+import ProfileDialog from '../ProfileDialog/ProfileDialog';
 
 const Photo = styled(({ children, ...props }) => (
   <Avatar {...props}>{children}</Avatar>
@@ -116,7 +117,11 @@ const LoginForm = ({ handler, onClose }) => {
 
 const Login = ({ children, ...props }) => {
   const { authenticator } = React.useContext(AuthContext);
-  const menu = useMenu();
+  const modal = useMenu();
+
+  const menu = useMenu(val => {
+    val === 2 && modal.handleClick()
+  });
 
   if (authenticator.state.matches('send_signin')) {
     return <>Wait...</>;
@@ -124,22 +129,48 @@ const Login = ({ children, ...props }) => {
 
   if (authenticator.state.matches('signed_in')) {
     return (
-      <ConfirmPop
-        onChange={(ok) => ok && authenticator.send('SIGNOUT')}
-        label="Confirm Logout"
-        message="Are you sure you want to sign out?"
-      >
+      <>
+
+      <FlexMenu
+        component={Dialog}
+        open={Boolean(modal.open)}
+        onClose={modal.handleClose()}
+     > 
+      <Box sx={{ p: 2 }}>
+      <ProfileDialog user={authenticator.user} onChange={modal.handleClose()} />
+      </Box>
+      </FlexMenu>
+
+
+
+      <FlexMenu
+        anchorEl={menu.anchorEl}
+        open={Boolean(menu.anchorEl)}
+        onClose={menu.handleClose()}
+     >
+        <MenuItem onClick={menu.handleClose(1)} >Log out</MenuItem>
+        <MenuItem  onClick={menu.handleClose(2)} >Edit Profile</MenuItem>
+
+      </FlexMenu>
+
+
+      <Box onClick={menu.handleClick}>
         {!children ? (
-          <Photo
+        <>  <Photo
             src={authenticator.user.attributes.picture}
             alt={authenticator.user.username}
           >
             {authenticator.user.username?.substr(0, 2).toUpperCase()}
           </Photo>
+        
+          </>
         ) : (
           <>{children}</>
         )}
-      </ConfirmPop>
+      </Box>
+
+ 
+      </>
     );
   }
 
