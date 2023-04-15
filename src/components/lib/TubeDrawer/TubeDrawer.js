@@ -474,6 +474,34 @@ const TubeDrawer = ({ small, menu, tube }) => {
                 <Stack spacing={2}>
                
                   <Embed
+                    onStart={async (e) => {
+                      if (!pin) return;
+
+
+                      if (tube.intros && tube.intros[pin.trackName]) {
+                        const { Introduction, Speechtime } = tube.intros[pin.trackName];
+                        !!Introduction && speek(Introduction, Speechtime)
+                      } else { 
+                        const { Introduction, Speechtime } = await getIntro(pin.trackName, pin.artistName);    
+                        !!Introduction && speek(Introduction, Speechtime)
+                      } 
+
+                      if (!tube.items) return;
+
+                      const nextPin = tube.items[tube.response_index + 1];
+                      if (!nextPin) return;
+
+                      const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName);
+                      !!nextIntro && tube.send({
+                        type: 'CHANGE',
+                        key: 'intros',
+                        value: {
+                          ...tube.intros,
+                          [nextIntro.title]: nextIntro
+                        }
+                      })
+
+                    }}
                     small={small}
                     onEnd={() => {
                       tube.send('NEXT');
@@ -501,6 +529,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
                         </Flex>
                         <Sizewrap mobile={small} offset={120} small muted>
                           {pin.artistName}
+                        
                         </Sizewrap>
                         {/* <Sizewrap mobile={small} offset={120} small muted>
                           {pin.collectionName}
@@ -538,7 +567,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
 TubeDrawer.defaultProps = {};
 export default TubeDrawer;
 
-const Embed = ({ onEnd, small, src }) => {
+const Embed = ({ onEnd, onStart, small, src }) => {
   const regex = /v=(.*)/.exec(src);
   if (!regex) {
     return <>Could not parse {src}</>;
@@ -551,5 +580,88 @@ const Embed = ({ onEnd, small, src }) => {
       autoplay: 1,
     },
   };
-  return <YouTube videoId={regex[1]} opts={opts} onEnd={onEnd} />;
+  return <YouTube onPlay={onStart} videoId={regex[1]} opts={opts} onEnd={onEnd} />;
 };
+
+const getIntro = async (title, artist) => {
+  const instructions = `for the song "${title}" by "${artist}" write an introduction to the song that a SpeechSynthesisUtterance object
+        could read before the vocals start, allowing 4 seconds for the SpeechSynthesisUtterance object to load. return the answer as in Intro in this format 
+        interface Intro { 
+          Introduction: string;  
+          Speechtime: number; // number of seconds before vocals
+        }.  
+      return only the JSON object with no additional comment.`;
+
+    const create = q => ([{"role": "user", "content": q}]);
+    const intro = await generateText (create(instructions), 1, 96)
+    const { choices } = intro;
+
+    if (!choices?.length) return false;
+    const { message } = choices[0]; 
+
+    const dj = JSON.parse(message.content);
+
+    return {
+      ...dj,
+      title,
+      artist
+    }
+}
+// eslint-disable-next-line
+const [_, REACT_APP_CHAT_GPT_API_KEY] = process.env.REACT_APP_API_KEY.split(',')
+
+/**
+ * Generates text using OpenAI's GPT-3 API
+ * @async
+ * @function
+ * @param {string[]} messages - Array of strings representing the conversation history
+ * @param {number} temperature - A number between 0 and 1 representing the creativity of the generated text
+ * @returns {Promise<Object>} - A Promise that resolves with an object representing the generated text
+ */
+const generateText = async (messages, temperature, max_tokens = 128) => {
+  const requestOptions = {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${REACT_APP_CHAT_GPT_API_KEY}`,
+    },
+    body: JSON.stringify({
+      messages,
+      temperature,
+      model: "gpt-3.5-turbo",
+      max_tokens
+    }),
+  };
+
+  /**
+   * Sends a POST request to OpenAI's API and returns a Promise that resolves with the response JSON
+   * @async
+   * @function
+   * @param {string} url - The URL to send the request to
+   * @param {Object} options - The options to include in the request
+   * @returns {Promise<Object>} - A Promise that resolves with the response JSON
+   */
+  const response = await fetch('https://api.openai.com/v1/chat/completions', requestOptions );
+  const json = await response.json();
+  return json;
+};
+
+ 
+
+/**
+ * Speaks the given message in the specified language using the built-in browser speech synthesis API.
+ * @param {string} msg - The message to be spoken.
+ * @param {string} [lang="en-US"] - The language in which the message should be spoken. Defaults to "en-US".
+ * @returns {void}
+ */
+const speek = (msg, time) => {
+  const synth = window.speechSynthesis;
+  const utterThis = new SpeechSynthesisUtterance();
+  utterThis.lang =  "en-US";
+  utterThis.text = msg
+  utterThis.rate = 1.1; 
+  synth.speak(utterThis);
+  // !!time && setTimeout(() => {
+  //   synth.cancel();
+  // }, time * 1000)
+}

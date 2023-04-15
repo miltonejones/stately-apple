@@ -845,11 +845,14 @@ export const useTube = (onChange, onClose) => {
     ...state.context,
   };
 };
+
+
+const [REACT_APP_YT_API_KEY] = process.env.REACT_APP_API_KEY.split(',')
  
 const searchTubeAPI = async (param) => {
   
   const TUBE_ENDPOINT =
-  `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&key=${process.env.REACT_APP_API_KEY}&q=`;
+  `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&key=${REACT_APP_YT_API_KEY}&q=`;
   
   const response = await fetch(TUBE_ENDPOINT + `${encodeURIComponent(param.replace(/\//g, ' '))}`); 
   const json = await response.json();
