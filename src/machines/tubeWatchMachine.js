@@ -29,50 +29,64 @@ const tubeWatchMachine = createMachine({
   states: {
     ready: {},
     open: {
-      initial: 'tik',
+      initial: "tik",
       states: {
         tik: {
           always: [
             {
-              target: 'loaded',
-              cond: 'noTrackProps',
+              target: "loaded",
+              cond: "noTrackProps",
             },
             {
-              target: 'narrate',
+              target: "narrate",
             },
           ],
         },
         loaded: {
-          initial: 'prepare',
+          initial: "prepare",
           states: {
             prepare: {
               entry: "assignNext",
               invoke: {
-                src: 'loadNext',
+                src: "loadNext",
                 onDone: [
                   {
-                    target: 'ready',
-                    actions: 'assignIntros',
+                    target: "ready",
+                    actions: "assignIntros",
                   },
                 ],
               },
             },
-            ready: {},
+            ready: {
+              on: {
+                OPEN: [
+                  {
+                    target: "#tube_watch.open.tik",
+                    cond: "doesntExist",
+                    actions: "assignProps",
+                  },
+                  {
+                    target: "prepare",
+                    actions: ["assignProps", "assignExisting"],
+                  },
+                ],
+              },
+            },
           },
         },
         narrate: {
           invoke: {
-            src: 'loadNarration',
+            src: "loadNarration",
             onDone: [
               {
-                target: 'loaded',
-                actions: ['assignIntro', 'assignIntros'],
+                target: "loaded",
+                actions: ["assignIntro", "assignIntros"],
               },
             ],
             onError: [
               {
-                target: 'loaded',
-                actions: 'clearProps',
+                target: "loaded",
+                actions: "clearProps",
               },
             ],
           },
@@ -80,8 +94,8 @@ const tubeWatchMachine = createMachine({
       },
       on: {
         CLOSE: {
-          target: 'ready',
-          actions: 'clearProps',
+          target: "ready",
+          actions: "clearProps",
         },
       },
     },
@@ -98,7 +112,8 @@ const tubeWatchMachine = createMachine({
 
 {
   guards: {
-    noTrackProps: context => !context.trackName
+    noTrackProps: context => !context.trackName,
+    doesntExist: (context, event) => !context.intros[event.trackName]
   },
   actions: {
     assignNext: assign((context, event) => {
@@ -116,6 +131,9 @@ const tubeWatchMachine = createMachine({
         ...context.intros,
         [context.trackName]: event.data
       }
+    })),
+    assignExisting: assign((context, event) => ({ 
+      intro: context.intros[context.trackName]
     })),
     assignProps: assign((_, event) => ({
       ...event,
