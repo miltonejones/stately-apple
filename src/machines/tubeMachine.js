@@ -3,7 +3,22 @@ import { useMachine } from "@xstate/react";
 import { Auth, Storage } from "aws-amplify";
 import { getIntro} from "../util/getIntro";  
 
+const getLocalSettings = () => {
+  return JSON.parse(localStorage.getItem('tube-settings') || "{}")
+}
 
+const getLocalSetting = key => {
+  const settings = getLocalSettings();
+  return settings[key];
+}
+
+const setLocalSettings = (key, value) => {
+  const settings = getLocalSettings();
+  localStorage.setItem('tube-settings', JSON.stringify({
+    ...settings,
+    [key]: value
+  }))
+}
 
 
 // add machine code
@@ -481,9 +496,12 @@ const tubeMachine = createMachine(
           ),
         };
       }),
-      applyChanges: assign((_, event) => ({
-        [event.key]: event.value,
-      })),
+      applyChanges: assign((_, event) => {
+        setLocalSettings(event.key, event.value);
+        return {
+          [event.key]: event.value,
+        }
+      }),
       clearResponses: assign((_, event) => ({
         response: null,
         pin: null,
@@ -577,6 +595,7 @@ const tubeMachine = createMachine(
            pins,
           groups:[],
           playlists: [],
+          options: getLocalSetting('options') || context.options
           // response_index: 0
         };
       }),

@@ -1,57 +1,43 @@
-import { getRandomBoolean } from './getRandomBoolean';
-import { generateText } from './generateText';
-import moment from 'moment';
-import { DJ_OPTIONS } from './djOptions';
+/**
+ * @description Creates an introduction for a song using its title,
+ * artist, and additional arguments. Returns the introduction, or false if
+ * no introduction can be created.
+ * @param {string} title - The title of the song.
+ * @param {string} artist - The name of the artist or band.
+ * @param {string} ...args - Additional arguments to use for text generation.
+ * @returns {Object|Boolean} - The introduction object with title, artist, and
+ * introduction properties, or false if no introduction can be created.
+ */
+import { createInstructions } from './createInstructions';
+import { generateText } from './generateText'; 
 
- 
+export const getIntro = async (title, artist, ...args) => {
+  // Create instructions for text generation.
+  const curatedInstructions = createInstructions(title, artist, ...args); 
 
-export const getIntro = async (
-    title, 
-    artist, 
-    upcoming = [],
-    firstName, 
-    options, 
-    isNew,   
-  ) => {
-  const nextup = upcoming
-    .slice(0, 2)
-    .map(f => `${f.trackName} by ${f.artistName}`).join(' and ');
+  // Generate text based on instructions.
+  const intro = await generateText(curatedInstructions, 1, 128); 
 
-    const sayBoombot = options & DJ_OPTIONS.BOOMBOT;
-    const sayUsername = options & DJ_OPTIONS.USERNAME;
-    const sayTime = options & DJ_OPTIONS.TIME;
-    const sayUpnext = options & DJ_OPTIONS.UPNEXT;
+  // Extract choices from generated text.
+  const { choices } = intro; 
 
-  const instructions = `for the song "${title}" by "${artist}" write an introduction to the song that a SpeechSynthesisUtterance object
-        could read  before the vocals start.   
-        ${!!isNew ? "remind user to add this song to favorites by clicking the pin icon" : ""}
-        ${!!sayBoombot && getRandomBoolean() ? "Mention Boombot Radio in the introduction." : ""}
-        ${!!sayTime && getRandomBoolean() ? ("The introduction should be topical to the time of day which is" + moment().format('hh:mm a')) : ""}
-        ${!!sayUpnext && !!nextup?.length && getRandomBoolean() ?  ("Mention the upcoming tracks " + nextup) : ""} 
-        ${!!sayUsername && !!firstName && 
-          firstName !== undefined && 
-          firstName !== 'undefined' && getRandomBoolean() ?  ("Mention a listener named " + firstName) : ""} 
-        return the answer as in Intro in this format 
-        interface Intro { 
-          Introduction: string;  
-          Speechtime: number; // number of seconds before vocals
-        }.  
-      return only the JSON object with no additional comment.`;
+  // If no choices exist, return false.
+  if (!choices?.length) {
+    return false;
+  }
 
-    const create = q => ([{"role": "user", "content": q}]);
-    const intro = await generateText (create(instructions), 1, 128)
-    const { choices } = intro;
+  // Parse introduction from first message in choices.
+  const { message } = choices[0];  
+  const dj = JSON.parse(message.content); 
 
-    if (!choices?.length) return false;
-    const { message } = choices[0]; 
+  // Log introduction length.
+  console.log(dj.Introduction, dj.Introduction.length);
 
-    const dj = JSON.parse(message.content);
+  // Return introduction object with title, artist, and introduction properties.
+  return {
+    ...dj,
+    title,
+    artist
+  };
+};
 
-    console.log (dj.Introduction, dj.Introduction.length)
-
-    return {
-      ...dj,
-      title,
-      artist
-    }
-}

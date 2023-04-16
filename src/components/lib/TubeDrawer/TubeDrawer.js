@@ -28,10 +28,12 @@ import {
   // TimedSnackbar,
   Shield
 } from '../../../styled';
-import moment from 'moment';
+// import moment from 'moment';
 
 import { useMenu, DJ_OPTIONS } from '../../../machines';
 import { collatePins } from '../../../util/collatePins';
+import { getIntro } from '../../../util/getIntro';
+import { speakText } from '../../../util/speakText';
 import Login from '../Login/Login';
 
 import YouTube from 'react-youtube';
@@ -382,11 +384,9 @@ const TubeDrawer = ({ small, menu, tube }) => {
     return nextTracks?.slice(0, 10);
   } 
 
-  const talk = (text) => {
-    const randomizeVoice = tube.options & DJ_OPTIONS.RANDOM;
-    const showOutput = tube.options & DJ_OPTIONS.SHOW
-    !!text && speek(text, randomizeVoice, (value) => {
-      if (!showOutput) return; 
+  const talk = (text) => { 
+    !!text && speakText(text, tube.options & DJ_OPTIONS.RANDOM, (value) => {
+      if (!(tube.options & DJ_OPTIONS.SHOW)) return; 
       tube.send({
         type: 'CHANGE',
         key: 'vocab',
@@ -395,33 +395,38 @@ const TubeDrawer = ({ small, menu, tube }) => {
     })
   }
 
-  const introduce = async () => {
+  const introduce = async () => { 
+
+    if(tube.options & DJ_OPTIONS.OFF) return;
 
     if (!pin) { 
       if (track) {  
-        const { Introduction } = await getIntro(track.trackName, track.artistName,  [], firstName, tube.options, !0);    
+        // if track is not pinned, load an intro for new tracks 
+        const { Introduction } = await getIntro(track.trackName, track.artistName, [], firstName, tube.options, true, true);    
         !!Introduction && talk(Introduction)
       }
       return
     };
 
-    if(tube.options & DJ_OPTIONS.OFF) return;
-
-
     if (tube.intros && tube.intros[pin.trackName]) {
+      // if intro has already been written, speak it noww
       const { Introduction } = tube.intros[pin.trackName];
       !!Introduction && talk(Introduction)
     } else { 
-      const { Introduction } = await getIntro(pin.trackName, pin.artistName,  getUpcoming(1), firstName, tube.options, null, 8);    
+      // write intro for this song
+      const { Introduction } = await getIntro(pin.trackName, pin.artistName, getUpcoming(1), firstName, tube.options, false, true);    
       !!Introduction && talk(Introduction)
     } 
 
     if (!tube.items) return;
 
+    // get intro text for next song while this one plays 
     const nextPin = tube.items[selectedIndex + 1];
     if (!nextPin) return;
 
-    const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName,  getUpcoming(2), firstName, tube.options, null, 4);
+    const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName, getUpcoming(2), firstName, tube.options);
+
+    // save intro for the next track to context
     !!nextIntro && tube.send({
       type: 'CHANGE',
       key: 'intros',
@@ -621,133 +626,6 @@ const Embed = ({ onEnd, onStart, small, src }) => {
   };
   return <YouTube onPlay={onStart} videoId={regex[1]} opts={opts} onEnd={onEnd} />;
 };
-
-function getRandomBoolean() {
-  return Math.random() < 0.5;
-}
-
-
-const getIntro = async (title, artist, upcoming = [], firstName, options, isNew, offset = 4) => {
-  const nextup = upcoming
-    .slice(0, 2)
-    .map(f => `${f.trackName} by ${f.artistName}`).join(' and ');
-
-    const sayBoombot = options & DJ_OPTIONS.BOOMBOT;
-    const sayUsername = options & DJ_OPTIONS.USERNAME;
-    const sayTime = options & DJ_OPTIONS.TIME;
-    const sayUpnext = options & DJ_OPTIONS.UPNEXT;
-
-  const instructions = `for the song "${title}" by "${artist}" write an introduction to the song that a SpeechSynthesisUtterance object
-        could read  before the vocals start.   
-        ${!!isNew ? "remind user to add this song to favorites by clicking the pin icon" : ""}
-        ${!!sayBoombot && getRandomBoolean() ? "Mention Boombot Radio in the introduction." : ""}
-        ${!!sayTime && getRandomBoolean() ? ("The introduction should be topical to the time of day which is" + moment().format('hh:mm a')) : ""}
-        ${!!sayUpnext && !!nextup?.length && getRandomBoolean() ?  ("Mention the upcoming tracks " + nextup) : ""} 
-        ${!!sayUsername && !!firstName && 
-          firstName !== undefined && 
-          firstName !== 'undefined' && getRandomBoolean() ?  ("Mention a listener named " + firstName) : ""} 
-        return the answer as in Intro in this format 
-        interface Intro { 
-          Introduction: string;  
-          Speechtime: number; // number of seconds before vocals
-        }.  
-      return only the JSON object with no additional comment.`;
-
-    const create = q => ([{"role": "user", "content": q}]);
-    const intro = await generateText (create(instructions), 1, 128)
-    const { choices } = intro;
-
-    if (!choices?.length) return false;
-    const { message } = choices[0]; 
-
-    const dj = JSON.parse(message.content);
-
-    console.log (dj.Introduction, dj.Introduction.length)
-
-    return {
-      ...dj,
-      title,
-      artist
-    }
-}
-// eslint-disable-next-line
-const [_, REACT_APP_CHAT_GPT_API_KEY] = process.env.REACT_APP_API_KEY.split(',')
-
-/**
- * Generates text using OpenAI's GPT-3 API
- * @async
- * @function
- * @param {string[]} messages - Array of strings representing the conversation history
- * @param {number} temperature - A number between 0 and 1 representing the creativity of the generated text
- * @returns {Promise<Object>} - A Promise that resolves with an object representing the generated text
- */
-const generateText = async (messages, temperature, max_tokens = 128) => {
-  const requestOptions = {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${REACT_APP_CHAT_GPT_API_KEY}`,
-    },
-    body: JSON.stringify({
-      messages,
-      temperature,
-      model: "gpt-3.5-turbo",
-      max_tokens
-    }),
-  };
-
-  /**
-   * Sends a POST request to OpenAI's API and returns a Promise that resolves with the response JSON
-   * @async
-   * @function
-   * @param {string} url - The URL to send the request to
-   * @param {Object} options - The options to include in the request
-   * @returns {Promise<Object>} - A Promise that resolves with the response JSON
-   */
-  const response = await fetch('https://api.openai.com/v1/chat/completions', requestOptions );
-  const json = await response.json();
-  return json;
-};
-
  
 
-/**
- * Speaks the given message in the specified language using the built-in browser speech synthesis API.
- * @param {string} msg - The message to be spoken.
- * @param {string} [lang="en-US"] - The language in which the message should be spoken. Defaults to "en-US".
- * @returns {void}
- */
-const speek = (msg, rand, emitText) => {
-  const synth = window.speechSynthesis;
-  const utterThis = new SpeechSynthesisUtterance();
-  const voices = synth.getVoices();
  
-  const avail = voices?.filter(voice => !!voice.localService && voice.lang === 'en-US');
-
-  const randomVoiceIndex = Math.floor(Math.random() * avail?.length);
-  const randomVoice = !avail?.length ? null : avail[randomVoiceIndex];
- 
-
-  utterThis.lang =  "en-US";
-  utterThis.text = msg
-  utterThis.rate = 1.1; 
-
-
-  utterThis.onstart = () => {
-    emitText && emitText(msg);
-  };
-
-
-  // utterThis.onboundary = (event) => {
-  //   const spokenText = utterThis.text.slice(0, event.charIndex);
-  //   emitText && emitText(spokenText);
-  // };
-  utterThis.onend = () => {
-    emitText && emitText(null);
-  };
-  if (randomVoice && rand) {
-    utterThis.voice = randomVoice;
-  }
-
-  synth.speak(utterThis); 
-}
