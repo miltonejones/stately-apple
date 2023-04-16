@@ -4,7 +4,7 @@ import { useMachine } from "@xstate/react";
 import { getIntro} from "../util/getIntro";  
 
 const loadIntro = async (context, unpinned, moreDetails) => {
-  const { intros = {}, trackName, artistName, upcoming, firstName, options } = context;
+  const { intros = {}, trackName, artistName, upcoming = [], firstName, options } = context;
   if (intros[trackName]) {
     return intros[trackName];
   }
@@ -118,6 +118,9 @@ const tubeWatchMachine = createMachine({
   actions: {
     assignNext: assign((context, event) => {
       const { upcoming } = context;
+      if (!upcoming?.length) {
+        return 
+      }
       const { trackName, artistName } = upcoming.shift();
       return {
         trackName, artistName , upcoming
