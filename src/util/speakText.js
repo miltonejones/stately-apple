@@ -18,10 +18,8 @@ export const speakText = (message, useRandomVoice = true, onTextChange = null) =
   const randomVoiceIndex = Math.floor(Math.random() * availableVoices?.length);
   const randomVoice = !availableVoices?.length ? null : availableVoices[randomVoiceIndex];
  
-
   utterance.lang = "en-US";
   utterance.text = message;
-
 
   utterance.onstart = () => {
     onTextChange && onTextChange(message);
@@ -39,4 +37,3 @@ export const speakText = (message, useRandomVoice = true, onTextChange = null) =
   // Speak the message using the browser's speech synthesis API
   synth.speak(utterance); 
 }
-

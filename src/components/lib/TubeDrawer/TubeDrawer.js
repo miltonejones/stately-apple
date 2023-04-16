@@ -12,6 +12,7 @@ import {
   Collapse,
   Popover,
   Drawer,
+  Skeleton
 } from '@mui/material';
 
 import {
@@ -30,9 +31,9 @@ import {
 } from '../../../styled';
 // import moment from 'moment';
 
-import { useMenu, DJ_OPTIONS } from '../../../machines';
+import { useMenu, useTubeWatch, DJ_OPTIONS } from '../../../machines';
 import { collatePins } from '../../../util/collatePins';
-import { getIntro } from '../../../util/getIntro';
+// import { getIntro } from '../../../util/getIntro';
 import { speakText } from '../../../util/speakText';
 import Login from '../Login/Login';
 
@@ -384,58 +385,70 @@ const TubeDrawer = ({ small, menu, tube }) => {
     return nextTracks?.slice(0, 10);
   } 
 
-  const talk = (text) => { 
-    !!text && speakText(text, tube.options & DJ_OPTIONS.RANDOM, (value) => {
-      if (!(tube.options & DJ_OPTIONS.SHOW)) return; 
-      tube.send({
-        type: 'CHANGE',
-        key: 'vocab',
-        value
-      })
-    })
-  }
-
-  const introduce = async () => { 
-
-    if(tube.options & DJ_OPTIONS.OFF) return;
-
-    if (!pin) { 
-      if (track) {  
-        // if track is not pinned, load an intro for new tracks 
-        const { Introduction } = await getIntro(track.trackName, track.artistName, [], firstName, tube.options, true, true);    
-        !!Introduction && talk(Introduction)
-      }
-      return
-    };
-
-    if (tube.intros && tube.intros[pin.trackName]) {
-      // if intro has already been written, speak it noww
-      const { Introduction } = tube.intros[pin.trackName];
-      !!Introduction && talk(Introduction)
-    } else { 
-      // write intro for this song
-      const { Introduction } = await getIntro(pin.trackName, pin.artistName, getUpcoming(1), firstName, tube.options, false, true);    
-      !!Introduction && talk(Introduction)
-    } 
-
-    if (!tube.items) return;
-
-    // get intro text for next song while this one plays 
-    const nextPin = tube.items[selectedIndex + 1];
-    if (!nextPin) return;
-
-    const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName, getUpcoming(2), firstName, tube.options);
-
-    // save intro for the next track to context
-    !!nextIntro && tube.send({
+  const showVocab = value => {
+    if (!(tube.options & DJ_OPTIONS.SHOW)) return; 
+    tube.send({
       type: 'CHANGE',
-      key: 'intros',
-      value: {
-        ...tube.intros,
-        [nextIntro.title]: nextIntro
-      }
-    }) 
+      key: 'vocab',
+      value
+    })   
   }
+
+  const talk = (text) => { 
+    !!text && speakText(text, tube.options & DJ_OPTIONS.RANDOM, showVocab)
+  }
+
+
+  const embedProps = {
+    options: tube.options,
+    firstName,
+    upcoming: getUpcoming(1),
+    unpinned: !pin,
+    showVocab,
+    randomize: tube.options & DJ_OPTIONS.RANDOM
+  }
+
+  // const introduce = async () => { 
+
+  //   if(tube.options & DJ_OPTIONS.OFF) return;
+
+  //   if (!pin) { 
+  //     if (track) {  
+  //       // if track is not pinned, load an intro for new tracks 
+  //       const { Introduction } = await getIntro(track.trackName, track.artistName, [], firstName, tube.options, true, true);    
+  //       !!Introduction && talk(Introduction);
+  //     }
+  //     return;
+  //   };
+
+  //   if (tube.intros && tube.intros[pin.trackName]) {
+  //     // if intro has already been written, speak it noww
+  //     const { Introduction } = tube.intros[pin.trackName];
+  //     !!Introduction && talk(Introduction);
+  //   } else { 
+  //     // write intro for this song
+  //     const { Introduction } = await getIntro(pin.trackName, pin.artistName, getUpcoming(1), firstName, tube.options, false, true);    
+  //     !!Introduction && talk(Introduction);
+  //   } 
+
+  //   if (!tube.items) return;
+
+  //   // get intro text for next song while this one plays 
+  //   const nextPin = tube.items[selectedIndex + 1];
+  //   if (!nextPin) return;
+
+  //   const nextIntro = await getIntro(nextPin.trackName, nextPin.artistName, getUpcoming(2), firstName, tube.options);
+
+  //   // save intro for the next track to context
+  //   !!nextIntro && tube.send({
+  //     type: 'CHANGE',
+  //     key: 'intros',
+  //     value: {
+  //       ...tube.intros,
+  //       [nextIntro.title]: nextIntro
+  //     }
+  //   });
+  // }
 
   return (
     <>
@@ -547,7 +560,11 @@ const TubeDrawer = ({ small, menu, tube }) => {
                 <Stack spacing={2}>
                
                   <Embed
-                    onStart={introduce}
+                    {...track}
+                    {...embedProps}
+                    
+                    onStart={talk}
+
                     small={small}
                     onEnd={() => {
                       tube.send('NEXT');
@@ -573,14 +590,9 @@ const TubeDrawer = ({ small, menu, tube }) => {
                             {pin.trackName}
                           </Sizewrap>
                         </Flex>
-                        <Sizewrap mobile={small} offset={120} small muted>
-                     
-                          {pin.artistName}
-                     
-                        </Sizewrap>
-                        {/* <Sizewrap mobile={small} offset={120} small muted>
-                          {pin.collectionName}
-                        </Sizewrap> */}
+                        <Sizewrap mobile={small} offset={120} small muted> 
+                          {pin.artistName} 
+                        </Sizewrap> 
                       </Stack>
                       <Spacer />
                       <Nowrap hover small>
@@ -611,20 +623,41 @@ const TubeDrawer = ({ small, menu, tube }) => {
 TubeDrawer.defaultProps = {};
 export default TubeDrawer;
 
-const Embed = ({ onEnd, onStart, small, src }) => {
-  const regex = /v=(.*)/.exec(src);
-  if (!regex) {
-    return <>Could not parse {src}</>;
+const Embed = ({ trackName, artistName, onEnd, onStart, small, randomize, showVocab, src, ...props }) => { 
+  const watch = useTubeWatch();
+ 
+  React.useEffect(() => {
+    watch.send({
+      type: 'OPEN',
+      trackName,
+      artistName,
+      ...props
+    })
+    // eslint-disable-next-line 
+  }, [trackName, artistName]);
+
+  const talk = (text) => { 
+    !!text && speakText(text, randomize, showVocab)
   }
+
+
   const opts = {
     height: small ? window.innerWidth * 0.5625 : IFRAME_HEIGHT,
     width: small ? window.innerWidth - 32 : IFRAME_WIDTH,
     playerVars: {
       // https://developers.google.com/youtube/player_parameters onReady
-      autoplay: 1,
+      autoplay: 1, 
     },
   };
-  return <YouTube onPlay={onStart} videoId={regex[1]} opts={opts} onEnd={onEnd} />;
+  const regex = /v=(.*)/.exec(src);
+  if (!regex) {
+    return <>Could not parse {src}</>;
+  }
+  if (!watch.state.matches('open.loaded')) {
+    return  <Skeleton variant="rectangular" {...opts} />
+  }
+  
+  return <YouTube onPlay={() => talk(watch.intro)} videoId={regex[1]} opts={opts} onEnd={onEnd}  />
 };
  
 
