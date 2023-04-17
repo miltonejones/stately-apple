@@ -2,8 +2,8 @@
  * Returns a randomly generated boolean value
  * @return {boolean}
  */
-export const getRandomBoolean = () => {
-  return Math.random() < 0.5;
+export const getRandomBoolean = (cadence = 0.5) => {
+  return Math.random() < cadence;
 }
 
 /**

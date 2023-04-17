@@ -4,7 +4,7 @@ import { useMachine } from "@xstate/react";
 import { getIntro} from "../util/getIntro";  
 
 const loadIntro = async (context, unpinned, moreDetails) => {
-  const { intros = {}, trackName, artistName, upcoming = [], firstName, options } = context;
+  const { intros = {}, trackName, artistName, upcoming = [], firstName, language, options } = context;
   if (intros[trackName]) {
     return intros[trackName];
   }
@@ -16,7 +16,8 @@ const loadIntro = async (context, unpinned, moreDetails) => {
     options, 
 
     unpinned, 
-    moreDetails
+    moreDetails,
+    language
 
   );    
   return Introduction;

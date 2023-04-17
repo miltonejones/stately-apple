@@ -17,7 +17,7 @@ import moment from 'moment';
 
 const dotless = str => str?.replace(/\./g, '');
 
-export const createInstructions = (title, artist, upcoming = [], firstName, options, isNew, addedInfo = false) => {
+export const createInstructions = (title, artist, upcoming = [], firstName, options, isNew, addedInfo = false, lang = 'en-US') => {
   const nextUpcoming = upcoming.slice(0, 2).map(({ trackName, artistName }) => `${dotless(trackName)} by ${dotless(artistName)}`).join(' and ');
 
   const shouldSayBoombot = options & DJ_OPTIONS.BOOMBOT;
@@ -25,14 +25,37 @@ export const createInstructions = (title, artist, upcoming = [], firstName, opti
   const shouldSayTime = addedInfo && (options & DJ_OPTIONS.TIME);
   const shouldSayUpnext = options & DJ_OPTIONS.UPNEXT;
   const randomPoemType = getRandomPoemType();
+  const when = {
+    poem: isRandomlyTrue(true),
+    boom: isRandomlyTrue(shouldSayBoombot),
+    time: isRandomlyTrue(shouldSayTime),
+    next: isRandomlyTrue(shouldSayUpnext && !!nextUpcoming?.length),
+    name: isRandomlyTrue(shouldSayUsername && firstName !== undefined && firstName !== 'undefined'), 
+    lang
+  };
+
+  !!when.poem && Object.assign(when, { 
+    type: randomPoemType,
+  });
+
+  //  log positive conditions
+  console.table(Object.keys(when).reduce((out, key) => {
+    if (when[key]) {
+      out[key] = when[key];
+    }
+    return out;
+  }, {}))
 
   const instructions = `Write an introduction to the song "${dotless(title)}" by "${dotless(artist)}" that a SpeechSynthesisUtterance object could read before the vocals start.
       ${isNew ? 'Remind user to add this song to favorites by clicking the pin icon.' : ''}
-      ${isRandomlyTrue(true) && `Format the intro as a ${randomPoemType}`}
-      ${isRandomlyTrue(shouldSayBoombot) && 'Mention Boombot Radio in the introduction.'}
-      ${isRandomlyTrue(shouldSayTime) && `The introduction should be topical to the time of day which is ${moment().format('hh:mm a')}.`}
-      ${isRandomlyTrue(shouldSayUpnext && !!nextUpcoming?.length) && `Mention the upcoming tracks: ${nextUpcoming}.`}
-      ${isRandomlyTrue(shouldSayUsername && firstName !== undefined && firstName !== 'undefined') && `Mention a listener named ${firstName}.`}
+      ${when.poem && `Format the introduction as a ${when.type}.`}
+      ${when.boom && 'The introduction must menttion Boombot Radio in the introduction.'}
+      ${when.time && `The introduction should be topical to the time of day which is ${moment().format('hh:mm a')}.`}
+      ${when.next && `The introduction must menttion the upcoming tracks: ${nextUpcoming}.`}
+      ${when.name && `The introduction must menttion a listener named ${firstName}.`}
+      
+      The listeners locale setting is "${when.lang}"
+      
       Return the answer as an Intro in this format:
       
       interface Intro {
@@ -41,6 +64,7 @@ export const createInstructions = (title, artist, upcoming = [], firstName, opti
 
       Do not declare a variable.
       Do not return the interface.
+
 
       Your response is intended to be parsed as JSON.`;
 

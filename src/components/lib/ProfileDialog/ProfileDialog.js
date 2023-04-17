@@ -15,6 +15,8 @@ import {
   Tab,
   Switch,
   Divider,
+  MenuItem,
+  Slider,
 } from '@mui/material';
  
 import { Auth, Storage } from 'aws-amplify';
@@ -22,7 +24,18 @@ import { TextIcon, Flex, Nowrap } from '../../../styled';
 import { DJ_OPTIONS }  from '../../../machines';
 
 
- 
+const demoLanguages = { 
+  Danish: 'da-DK',
+  Dutch: 'nl-NL',
+  English: 'en-US',
+  French: 'fr-FR',
+  German: 'de-DE', 
+  Italian: 'it-IT',
+  Japanese: 'ja-JP', 
+  'Portuguese (Portugal, Brazil)': 'pt-PT', 
+  Spanish: 'es-ES',
+};
+
 
 const ProfileDialog = ({ user, onChange, tube }) => { 
 
@@ -30,6 +43,7 @@ const ProfileDialog = ({ user, onChange, tube }) => {
   const [firstName, setFirstName] = useState(user.attributes.given_name);
   const [lastName, setLastName] = useState(user.attributes.family_name);
   const [email, setEmail] = useState(user.attributes.email);
+  const [locale, setLocale] = useState(user.attributes.locale || 'en-US');
   const [photoUrl, setPhotoUrl] = useState(user.attributes.picture);
   const [value, setValue] = useState(0);
   const handleChange = (event, newValue) => {
@@ -60,13 +74,14 @@ const ProfileDialog = ({ user, onChange, tube }) => {
       given_name: firstName,
       family_name: lastName,
       email: email,
+      locale,
       picture: photoUrl,
     });  
     onChange && onChange(photoUrl) 
   };
 
   const djProps = {
-    [DJ_OPTIONS.OFF]: 'Turn off the DJ',
+    // [DJ_OPTIONS.OFF]: 'Turn off the DJ',
     [DJ_OPTIONS.USERNAME]: 'Say the logged in users name',
     [DJ_OPTIONS.TIME]: 'Mention the time',
     [DJ_OPTIONS.UPNEXT]: 'Talk about upcoming tracks',
@@ -124,11 +139,10 @@ const ProfileDialog = ({ user, onChange, tube }) => {
       </>}
 
        {value === 0 && <form onSubmit={handleSubmit} >
-          <Stack sx={{ m: 1 }} spacing={1}>
+          <Stack sx={{ m: 1 }} spacing={2}>
             <TextField
               size="small"
-              label="First Name"
-              variant="outlined"
+              label="First Name" 
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
             />
@@ -141,11 +155,20 @@ const ProfileDialog = ({ user, onChange, tube }) => {
             />
             <TextField
               size="small"
-              label="Email"
-              variant="outlined"
+              label="Email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+
+            <TextField
+              size="small"
+              label="Language" 
+              value={locale}
+              select 
+              onChange={(e) => setLocale(e.target.value)}
+            >
+             {Object.keys(demoLanguages).map(key =>  <MenuItem key={key} value={demoLanguages[key]}>{key}</MenuItem>)}
+            </TextField>
 
             <Flex>
 
@@ -158,17 +181,59 @@ const ProfileDialog = ({ user, onChange, tube }) => {
 
         </form> }
 
-      {value === 1 && <Stack>
+      {value === 1 && <Stack sx={{
+        minWidth: 400,
+        p: 2
+      }}>
+
+
+         <Nowrap bold small>
+          DJ announcer frequency
+         </Nowrap>
+         <Flex spacing={2}>
+          <Slider 
+             value={tube.cadence}
+             onChange={(_, value) => { 
+              tube.send({
+                type: 'CHANGE',
+                key: 'cadence',
+                value 
+              })  
+             }}
+             min={0}
+             max={1}
+             step={0.01}
+          />
+         <Nowrap wrap small muted cap>
+          {tube.cadence === 1 
+            ? 'always'
+            : tube.cadence === 0
+            ? 'never'
+            : tube.cadence > 0.75
+            ? 'often'
+            : tube.cadence < 0.25
+            ? 'seldom'
+            : 'sometimes'}
+         </Nowrap>
+
+         </Flex>
+            <Divider sx={{ m: theme => theme.spacing(2, 0) }} />
+
+         <Nowrap small bold cap>
+         announcer content settings 
+         </Nowrap>
          {Object.keys(djProps).map(key => <Flex 
             onClick={() => handleDJ(key)}
             key={key}>
           <Switch 
-            disabled={ key !== DJ_OPTIONS.OFF && !!(tube.options & DJ_OPTIONS.OFF)}
+            disabled={ key === DJ_OPTIONS.BOOMBOT || (key !== DJ_OPTIONS.OFF && !!(tube.options & DJ_OPTIONS.OFF))}
             checked={!!(tube.options & key)} />
-          <Nowrap small>
+          <Nowrap small muted={key === DJ_OPTIONS.BOOMBOT}>
             {djProps[key]}
           </Nowrap>
          </Flex>)}
+
+
         </Stack>}
       
     </div>

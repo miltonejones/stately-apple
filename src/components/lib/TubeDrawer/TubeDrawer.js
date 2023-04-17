@@ -33,7 +33,7 @@ import {
 
 import { useMenu, useTubeWatch, DJ_OPTIONS } from '../../../machines';
 import { collatePins } from '../../../util/collatePins';
-// import { getIntro } from '../../../util/getIntro';
+import { getRandomBoolean } from '../../../util/getRandomBoolean';
 import { speakText } from '../../../util/speakText';
 import Login from '../Login/Login';
 
@@ -353,7 +353,7 @@ export const PlayListMenu = ({ tube, playlists, pinnedItem }) => {
 };
 
 const TubeDrawer = ({ small, menu, tube }) => {
-  const { response, track } = tube;
+  const { response, cadence, track } = tube;
 
   const busy = tube.state.matches('lookup');
   const no_access = tube.state.matches('no_access');
@@ -379,6 +379,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
   const selectedIndex = tube.items?.map(i => i.tubekey).indexOf(selectedItem.href);
 
   const firstName = tube.user?.attributes?.given_name;
+  const language = tube.user?.attributes?.locale || 'en-US';
 
   const getUpcoming = (index) => {
     const nextTracks = tube.items?.slice(selectedIndex + index);
@@ -394,9 +395,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
     })   
   }
 
-  const talk = (text) => { 
-    !!text && speakText(text, tube.options & DJ_OPTIONS.RANDOM, showVocab)
-  }
+ 
 
 
   const embedProps = {
@@ -405,7 +404,9 @@ const TubeDrawer = ({ small, menu, tube }) => {
     upcoming: getUpcoming(1),
     unpinned: !pin,
     showVocab,
-    randomize: tube.options & DJ_OPTIONS.RANDOM
+    cadence,
+    randomize: tube.options & DJ_OPTIONS.RANDOM,
+    language
   }
 
   // const introduce = async () => { 
@@ -562,9 +563,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
                   <Embed
                     {...track}
                     {...embedProps}
-                    
-                    onStart={talk}
-
+                     
                     small={small}
                     onEnd={() => {
                       tube.send('NEXT');
@@ -623,7 +622,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
 TubeDrawer.defaultProps = {};
 export default TubeDrawer;
 
-const Embed = ({ trackName, artistName, onEnd, onStart, small, randomize, showVocab, src, ...props }) => { 
+const Embed = ({ trackName, artistName, onEnd, onStart, cadence, small, randomize, showVocab, src, ...props }) => { 
   const watch = useTubeWatch();
  
   React.useEffect(() => {
@@ -637,7 +636,7 @@ const Embed = ({ trackName, artistName, onEnd, onStart, small, randomize, showVo
   }, [trackName, artistName]);
 
   const talk = (text) => { 
-    !!text && speakText(text, randomize, showVocab)
+    !!text && getRandomBoolean(cadence) && speakText(text, randomize, props.language, showVocab)
   }
 
 

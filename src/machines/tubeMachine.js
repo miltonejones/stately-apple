@@ -33,6 +33,7 @@ const tubeMachine = createMachine(
       playlists: [],
       response_index: 0,
       options: 31,
+      cadence: 1,
       pins: [],
       view: 'list'
     },
@@ -952,6 +953,8 @@ const searchTubeAPI = async (param) => {
       image:  item.snippet.thumbnails.default.url
     }))
   }; 
+
+  alert (1)
   return pins;
 };
     

@@ -36,7 +36,7 @@ import { contains } from '../../../util/contains';
 import { jsonLink } from '../../../util/jsonLink';
 import { PlayListMenu } from '../TubeDrawer/TubeDrawer';
 import Login from '../Login/Login';
-import ProfilePhotoForm from '../ProfilePhotoForm/ProfilePhotoForm';
+// import ProfilePhotoForm from '../ProfilePhotoForm/ProfilePhotoForm';
 
 const BrowserContext = React.createContext();
 
@@ -624,11 +624,11 @@ const TubeBrowser = (props) => {
               Import bookmarks...
             </HiddenUpload>
 
-            <ProfilePhotoForm />
+            {/* <ProfilePhotoForm /> */}
 
             <Login tube={handler}>
               <Nowrap small hover>
-                Sign out
+                Edit profile
               </Nowrap>
             </Login>
           </Stack>

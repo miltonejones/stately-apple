@@ -58,13 +58,13 @@ const Nowrap = styled(Typography)(
       },
     };
     // If wrap is false, add styles to truncate the text
-    // if (!wrap) {
+    if (!wrap) {
       Object.assign(obj, {
         whiteSpace: 'nowrap',
         overflowX: 'hidden',
         textOverflow: 'ellipsis',
       });
-    // }
+    }
     // If fullWidth is true, set the width property to 100%
     if (fullWidth) {
       Object.assign(obj, {
