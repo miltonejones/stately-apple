@@ -17,6 +17,28 @@ import moment from 'moment';
 
 const dotless = str => str?.replace(/\./g, '');
 
+
+let ssmlProp = "";
+
+if ('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window) {
+  // SpeechSynthesis API is supported
+  var msg = new SpeechSynthesisUtterance();
+  if ('SpeechSynthesisMarkupLanguage' in msg) {
+    // SSML is supported
+    console.log('This browser supports SSML');
+    ssmlProp = "// format as SSML";
+  } else {
+    // SSML is not supported
+    console.log('This browser does not support SSML');
+  }
+} else {
+  // SpeechSynthesis API is not supported
+  console.log('This browser does not support the SpeechSynthesis API');
+}
+
+
+
+
 export const createInstructions = (title, artist, upcoming = [], firstName, options, isNew, addedInfo = false, lang = 'en-US') => {
   const nextUpcoming = upcoming.slice(0, 2).map(({ trackName, artistName }) => `${dotless(trackName)} by ${dotless(artistName)}`).join(' and ');
 
@@ -24,20 +46,15 @@ export const createInstructions = (title, artist, upcoming = [], firstName, opti
   const shouldSayUsername = addedInfo && (options & DJ_OPTIONS.USERNAME);
   const shouldSayTime = addedInfo && (options & DJ_OPTIONS.TIME);
   const shouldSayUpnext = options & DJ_OPTIONS.UPNEXT;
-  const randomPoemType = getRandomPoemType();
+  
   const when = {
-    poem: isRandomlyTrue(true),
+    poem: isRandomlyTrue(true) ? getRandomPoemType() : null,
     boom: isRandomlyTrue(shouldSayBoombot),
     time: isRandomlyTrue(shouldSayTime),
     next: isRandomlyTrue(shouldSayUpnext && !!nextUpcoming?.length),
-    name: isRandomlyTrue(shouldSayUsername && firstName !== undefined && firstName !== 'undefined'), 
-    lang
+    name: isRandomlyTrue(shouldSayUsername && firstName !== undefined && firstName !== 'undefined'),  
   };
-
-  !!when.poem && Object.assign(when, { 
-    type: randomPoemType,
-  });
-
+ 
   //  log positive conditions
   console.table(Object.keys(when).reduce((out, key) => {
     if (when[key]) {
@@ -48,18 +65,18 @@ export const createInstructions = (title, artist, upcoming = [], firstName, opti
 
   const instructions = `Write an introduction to the song "${dotless(title)}" by "${dotless(artist)}" that a SpeechSynthesisUtterance object could read before the vocals start.
       ${isNew ? 'Remind user to add this song to favorites by clicking the pin icon.' : ''}
-      ${when.poem && `Format the introduction as a ${when.type}.`}
+      ${when.poem && `Format the introduction as a ${when.poem}.`}
       ${when.boom && 'The introduction must menttion Boombot Radio in the introduction.'}
       ${when.time && `The introduction should be topical to the time of day which is ${moment().format('hh:mm a')}.`}
       ${when.next && `The introduction must menttion the upcoming tracks: ${nextUpcoming}.`}
       ${when.name && `The introduction must menttion a listener named ${firstName}.`}
       
-      The listeners locale setting is "${when.lang}"
+      The listeners locale setting is "${lang}"
       
       Return the answer as an Intro in this format:
       
       interface Intro {
-        Introduction: string;
+        Introduction: string; ${ssmlProp}
       }
 
       Do not declare a variable.

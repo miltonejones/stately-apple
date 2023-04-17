@@ -36,6 +36,8 @@ const demoLanguages = {
   Spanish: 'es-ES',
 };
 
+const synth = window.speechSynthesis;
+const voices = synth.getVoices();
 
 const ProfileDialog = ({ user, onChange, tube }) => { 
 
@@ -46,6 +48,11 @@ const ProfileDialog = ({ user, onChange, tube }) => {
   const [locale, setLocale] = useState(user.attributes.locale || 'en-US');
   const [photoUrl, setPhotoUrl] = useState(user.attributes.picture);
   const [value, setValue] = useState(0);
+
+
+  const [ language ] = locale.split('-');
+
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -100,6 +107,11 @@ const ProfileDialog = ({ user, onChange, tube }) => {
     })
   }
 
+  const availableVoices = voices?.filter(voice => !!voice.localService && voice.lang.indexOf(language) > -1);
+
+  console.log({
+    availableVoices
+  })
   return (
     <div> 
        <Tabs value={value} onChange={handleChange}>

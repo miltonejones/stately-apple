@@ -21,7 +21,7 @@ export const isRandomlyTrue = (cond) => {
  * @return {string} - A random type of poem
  */
 export const getRandomPoemType = () => {
-  const poemTypes = ['haiku', 'limerick', 'pun', 'epigram', 'cinquain'];
+  const poemTypes = ['haiku', 'limerick', 'pun', 'epigram', 'cinquain', 'knock-knock joke'];
   const randomIndex = Math.floor(Math.random() * poemTypes.length);
   return poemTypes[randomIndex];
 }
