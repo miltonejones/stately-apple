@@ -648,13 +648,15 @@ const Embed = ({ trackName, artistName, onEnd, onStart, cadence, small, randomiz
       autoplay: 1, 
     },
   };
-  const regex = /v=(.*)/.exec(src);
+  const regex = /v=(.{11})/.exec(src);
   if (!regex) {
     return <>Could not parse {src}</>;
   }
   if (!watch.state.matches('open.loaded')) {
     return  <Skeleton variant="rectangular" {...opts} />
   }
+
+  // return <>{regex[1]}</>
   
   return <YouTube onPlay={() => talk(watch.intro)} videoId={regex[1]} opts={opts} onEnd={onEnd}  />
 };

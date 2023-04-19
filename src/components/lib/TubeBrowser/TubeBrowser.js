@@ -901,6 +901,7 @@ const CategoryItem = ({ caption, item, group, ml = 2 }) => {
         small
       >
         {title}
+        
       </Nostack>
 
       <Spacer />

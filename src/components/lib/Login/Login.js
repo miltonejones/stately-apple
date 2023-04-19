@@ -135,6 +135,7 @@ const Login = ({ children, ...props }) => {
         component={Dialog}
         open={Boolean(modal.open)}
         onClose={modal.handleClose()}
+        maxWidth="lg"
      > 
       <Box sx={{ p: 2 }}>
       <ProfileDialog user={authenticator.user} onChange={modal.handleClose()} tube={props.tube}/>

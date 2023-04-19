@@ -16,12 +16,13 @@ import {
   Switch,
   Divider,
   MenuItem,
-  Slider,
+  LinearProgress,
+  Slider, 
 } from '@mui/material';
  
 import { Auth, Storage } from 'aws-amplify';
-import { TextIcon, Flex, Nowrap } from '../../../styled';
-import { DJ_OPTIONS }  from '../../../machines';
+import { TextIcon, Flex, Nowrap, Spacer, Columns, Btn, HiddenUpload } from '../../../styled';
+import { DJ_OPTIONS, useListImport }  from '../../../machines';
 
 
 const demoLanguages = { 
@@ -48,6 +49,8 @@ const ProfileDialog = ({ user, onChange, tube }) => {
   const [locale, setLocale] = useState(user.attributes.locale || 'en-US');
   const [photoUrl, setPhotoUrl] = useState(user.attributes.picture);
   const [value, setValue] = useState(0);
+
+  const importer = useListImport()
 
 
   const [ language ] = locale.split('-');
@@ -107,16 +110,33 @@ const ProfileDialog = ({ user, onChange, tube }) => {
     })
   }
 
-  const availableVoices = voices?.filter(voice => !!voice.localService && voice.lang.indexOf(language) > -1);
+// Handle batch download of selected items.
+const handleBatch = () => {
+  const batch = importer.results?.map((item) => ({
+    ...item,
+    param: `${item.trackName} ${item.artistName}`,
+    playlists: [importer.listname]
+  }));
+  tube.send({
+    type: 'BATCH',
+    batch,
+    slow: importer.slow
+  }); 
+};
 
-  console.log({
-    availableVoices
-  })
+  const tubeBusy = tube.state.matches('batch_lookup')
+
+  // const availableVoices = voices?.filter(voice => !!voice.localService && voice.lang.indexOf(language) > -1);
+
+  // console.log({
+  //   availableVoices
+  // })
   return (
     <div> 
        <Tabs value={value} onChange={handleChange}>
         <Tab label="Profile" />
         <Tab disabled={!tube?.user} label="DJ Control" />
+        <Tab disabled={!tube?.user} label="Import" />
       </Tabs>
       
       {value === 0 && <>
@@ -149,6 +169,78 @@ const ProfileDialog = ({ user, onChange, tube }) => {
         </Flex>
         <Divider sx={{ m: 2 }} />
       </>}
+
+      {value === 2 && <Stack spacing={1}>
+        
+        
+            <HiddenUpload
+              onChange={(obj) => {
+                // alert(JSON.stringify(obj))
+
+                const ev = obj.filter(f => !tube.pins.find(p => p.param === `${f.trackName} ${f.artistName}`))
+
+
+                importer.send({
+                  type: 'LOAD',
+                  tracks: ev
+                }) 
+              }}
+            >
+              Import sky-tunes playlist...
+            </HiddenUpload>
+              {JSON.stringify(tube.state.value)}--
+              {JSON.stringify(importer.state.value)}
+
+
+             {!!tube.batch_progress && <LinearProgress variant="determinate" value={tube.batch_progress} />}
+
+              <Columns columns="1fr 1fr 1fr 1fr">
+              {importer.results?.map(res => (
+                <Stack>
+                  <Nowrap sx={{ maxWidth: 200 }} bold={res.param === tube.param} small>{res?.trackName}</Nowrap>
+                  <Nowrap sx={{ maxWidth: 200 }}  tiny muted>{res?.artistName}</Nowrap>
+                </Stack>
+              ))}</Columns>
+
+
+             {importer.state.matches('verify') && <Flex>
+
+
+                <Flex 
+                  onClick={e => {
+                      importer.send({
+                        type: 'CHANGE',
+                        key:'slow',
+                        value:!importer.slow
+                      }) 
+                  }}>
+                <Switch checked={!importer.slow}  />
+                <Nowrap small>Use API</Nowrap>
+                </Flex>
+
+
+                <TextField
+                  name="listname"
+                  disabled={tubeBusy}
+                  value={importer.listname}
+                  size="small"
+                  onChange={e => {
+                      importer.send({
+                        type: 'CHANGE',
+                        key: e.target.name,
+                        value: e.target.value
+                      }) 
+                  }}
+                
+                />
+              <Spacer />
+             <Btn 
+              variant="contained"
+              disabled={tubeBusy}
+              onClick={handleBatch}>import</Btn>
+              
+              </Flex>}
+        </Stack>}
 
        {value === 0 && <form onSubmit={handleSubmit} >
           <Stack sx={{ m: 1 }} spacing={2}>

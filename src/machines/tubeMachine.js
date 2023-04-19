@@ -20,6 +20,14 @@ const setLocalSettings = (key, value) => {
   }))
 }
 
+const setTubeItems = (pins) => {
+  try {
+    localStorage.setItem("tb-pins", JSON.stringify(pins));
+  } catch (ex) {
+    console.log(ex.message);
+  }
+}
+
 
 // add machine code
 const tubeMachine = createMachine(
@@ -487,7 +495,7 @@ const tubeMachine = createMachine(
           f.param === event.pin.param ? event.pin : f
         );
 
-        localStorage.setItem("tb-pins", JSON.stringify(pins));
+        setTubeItems(pins);  
 
         return {
           pins,
@@ -545,7 +553,7 @@ const tubeMachine = createMachine(
 
         // console.log ({ exists, pins })
 
-        localStorage.setItem("tb-pins", JSON.stringify(pins));
+        setTubeItems(pins);  
 
         return {
           pins,
@@ -662,7 +670,7 @@ const tubeMachine = createMachine(
           ? context.pins.filter((f) => f.param !== pin.param)
           : context.pins.concat(pin);
 
-        localStorage.setItem("tb-pins", JSON.stringify(pins));
+          setTubeItems(pins);  
         const next_item = context.batch[batch_index];
 
         return {
@@ -754,6 +762,7 @@ const tubeMachine = createMachine(
         batch: null,
         param: null,
         // items: null,
+        slow: false,
         pin: null, 
         batch_progress: 0,
       }),
@@ -772,6 +781,7 @@ const tubeMachine = createMachine(
       assignBatch: assign((_, event) => ({
         batch: event.batch,
         param: event.batch[0].param,
+        slow: event.slow,
         batch_index: 0,
       })),
       applyPins: assign((_, event) => {
@@ -845,7 +855,7 @@ export const useTube = (onChange, onClose) => {
       dynamoPersist: async (context) => {
         if (!context.user) return;
         const { userDataKey } = context.user;  
-        const filename = `web/${userDataKey}.json`; 
+        const filename = `user/${userDataKey}.json`; 
 
         try {
           const result = await Storage.put(filename, JSON.stringify(context.pins));
@@ -866,53 +876,53 @@ export const useTube = (onChange, onClose) => {
         if (!context.user) return [];
  
         const { userDataKey } = context.user; 
-        const filename = `web/${userDataKey}.json`;
+        const filename = `user/${userDataKey}.json`;
 
         const localPins =  JSON.parse(localStorage.getItem("tb-pins") || "[]");
+ 
+        try {
 
+            const file = await Storage.get(filename, {
+              download: true,
+              contentType: 'application/json'
+            });
 
-
-
-        // const response = await Storage.head(filename);
-        // console.log ({
-        //   response
-        // })
-
-
-        const file = await Storage.get(filename, {
-          download: true,
-          contentType: 'application/json'
-        });
-
-        if (file?.Body) {  
-          return await new Promise(resolve => { 
-            try { 
-              const reader = new FileReader();
-              reader.readAsText(file.Body);
-  
-              reader.onload = () => {
-                const json = JSON.parse(reader.result);
-                // console.log ('JSON file retrieved "%s":', filename, json);
-                if (localPins?.length > json?.length) {
-                  return resolve(localPins);
-                }
-                resolve(json)
-              };
-            } catch (ex) {
-              console.log (ex)
+            if (file?.Body) {  
+              return await new Promise(resolve => { 
+                try { 
+                  const reader = new FileReader();
+                  reader.readAsText(file.Body);
+      
+                  reader.onload = () => {
+                    const json = JSON.parse(reader.result);
+                    console.log ('JSON file retrieved "%s":', filename, json);
+                    if (localPins?.length > json?.length) {
+                      return resolve(localPins);
+                    }
+                    resolve(json)
+                  };
+                } catch (ex) {
+                  console.log (ex)
+                } 
+              }) 
             } 
-          }) 
-        } 
-        console.log ("No file body was received") 
 
-        return false;
+        } catch (ex) {
+
+          console.log ("No file body was received") 
+  
+          return localPins;
+        }
       },
 
       // execSearch is an asynchronous function that searches the YouTube API
       // using the search parameter passed in from the context object.
       // It returns a promise that resolves with the search results as an object.
       execSearch: async (context) => {
-        return await searchTubeAPI(context.param);
+        if (context.slow) {
+          return await scrapeTubeAPI(context.param);
+        }
+        return await  searchTubeAPI(context.param)
       },
     },
   });
@@ -959,27 +969,12 @@ const searchTubeAPI = async (param) => {
 };
     
 
+const scrapeTubeAPI = async (param) => {
+  const TUBE_ENDPOINT = 'https://pv37bpjkgl.execute-api.us-east-1.amazonaws.com/find/'
+  const response = await fetch(TUBE_ENDPOINT + `${encodeURIComponent(param.replace(/\//g, ' '))}`); 
+  const json = await response.json(); 
+  return json;
+};
+    
 
 
-// [
-  
-
-/**
-    {
-      
-      "artworkUrl100":"https://is5-ssl.mzstatic.com/image/thumb/Music124/v4/a7/7f/88/a77f8841-e047-feaa-b530-fdf6a6bb9408/00606949089726.rgb.jpg/100x100bb.jpg",
-      "trackTimeMillis":283333,
-      "previewUrl":"https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/e2/b8/44/e2b8447f-14e8-66ee-59b2-5d2272693836/mzaf_11119025606964340964.plus.aac.p.m4a",
-      "artistId":1052456,"trackName":"Nasty Mind (feat. Truth Hurts)",
-      "title":"D12 - Nasty Mind (feat. Truth Hurts)","collectionName":"Devils Night","artistViewUrl":"https://music.apple.com/us/artist/d12/1052456?uo=4",
-      "discNumber":1,"trackCount":19,"param":"Nasty Mind (feat. Truth Hurts) D12","tubekey":"https://www.youtube.com/watch?v=XbjFZa6Vxys",
-      "wrapperType":"track","collectionId":1440904746,"trackExplicitness":"explicit",
-      "collectionViewUrl":"https://music.apple.com/us/album/nasty-mind-feat-truth-hurts/1440904746?i=1440905064&uo=4",
-      "contentAdvisoryRating":"Explicit","trackNumber":5,"trackId":1440905064,
-      "playlists":["Rap","Upbeat"],"discCount":1,"primaryGenreName":"Pop","trackPrice":1.29,
-      "trackViewUrl":"https://music.apple.com/us/album/nasty-mind-feat-truth-hurts/1440904746?i=1440905064&uo=4",
-      "artistName":"D12"
-    }
-
- * 
- */
