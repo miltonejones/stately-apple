@@ -13,10 +13,10 @@ import { generateText } from './generateText';
 
 export const getIntro = async (title, artist, ...args) => {
   // Create instructions for text generation.
-  const curatedInstructions = createInstructions(title, artist, ...args); 
+  const curatedInstructions = await createInstructions(title, artist, ...args); 
 
   // Generate text based on instructions.
-  const intro = await generateText(curatedInstructions, 1, 128); 
+  const intro = await generateText(curatedInstructions, .4, 128); 
 
   // Extract choices from generated text.
   const { choices } = intro; 

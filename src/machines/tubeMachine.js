@@ -2,6 +2,7 @@ import { createMachine, assign } from "xstate";
 import { useMachine } from "@xstate/react";
 import { Auth, Storage } from "aws-amplify";
 import { getIntro} from "../util/getIntro";  
+import moment from "moment";
 
 const getLocalSettings = () => {
   return JSON.parse(localStorage.getItem('tube-settings') || "{}")
@@ -633,10 +634,19 @@ const tubeMachine = createMachine(
           100 * (batch_index / context.batch.length)
         );
 
+        const elapsedTime = (Date.now() - context.start_time) / 1000;
+        const downloadSpeed = batch_index / elapsedTime;
+        const remainingItems = context.batch.length - batch_index;
+        const remainingTime = remainingItems / downloadSpeed;
+        const remainingTimeFormatted = moment.utc(remainingTime * 1000).format('mm:ss');
+
+
+
         return {
           batch_index,
           batch_progress,
           param: next_item?.param,
+          remainingTime:remainingTimeFormatted
         };
       }),
 
@@ -649,12 +659,17 @@ const tubeMachine = createMachine(
           100 * (batch_index / context.batch.length)
         );
 
-        // alert (JSON.stringify(first))
+        const elapsedTime = (Date.now() - context.start_time) / 1000;
+        const downloadSpeed = batch_index / elapsedTime;
+        const remainingItems = context.batch.length - batch_index;
+        const remainingTime = remainingItems / downloadSpeed;
+        const remainingTimeFormatted = moment.utc(remainingTime * 1000).format('mm:ss');
 
         if (!first) {
           return {
             batch_index,
             batch_progress,
+            remainingTime:remainingTimeFormatted
           };
         }
 
@@ -680,6 +695,7 @@ const tubeMachine = createMachine(
           batch_index,
           batch_progress,
           param: next_item?.param,
+          remainingTime:remainingTimeFormatted
         };
       }),
 
@@ -783,6 +799,7 @@ const tubeMachine = createMachine(
         param: event.batch[0].param,
         slow: event.slow,
         batch_index: 0,
+        start_time: Date.now()
       })),
       applyPins: assign((_, event) => {
         // alert (1);

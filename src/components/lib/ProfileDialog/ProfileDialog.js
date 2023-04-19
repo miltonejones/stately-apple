@@ -23,6 +23,7 @@ import {
 import { Auth, Storage } from 'aws-amplify';
 import { TextIcon, Flex, Nowrap, Spacer, Columns, Btn, HiddenUpload } from '../../../styled';
 import { DJ_OPTIONS, useListImport }  from '../../../machines';
+import moment from "moment";
 
 
 const demoLanguages = { 
@@ -189,7 +190,8 @@ const handleBatch = () => {
               Import sky-tunes playlist...
             </HiddenUpload>
               {JSON.stringify(tube.state.value)}--
-              {JSON.stringify(importer.state.value)}
+              {JSON.stringify(importer.state.value)}--
+              {JSON.stringify(tube.remainingTime)}--
 
 
              {!!tube.batch_progress && <LinearProgress variant="determinate" value={tube.batch_progress} />}
@@ -203,10 +205,11 @@ const handleBatch = () => {
               ))}</Columns>
 
 
-             {importer.state.matches('verify') && <Flex>
+             {importer.state.matches('verify') && <Flex spacing={1}>
 
 
                 <Flex 
+                 
                   onClick={e => {
                       importer.send({
                         type: 'CHANGE',
@@ -236,7 +239,7 @@ const handleBatch = () => {
               <Spacer />
              <Btn 
               variant="contained"
-              disabled={tubeBusy}
+              disabled={tubeBusy || !importer.listname}
               onClick={handleBatch}>import</Btn>
               
               </Flex>}

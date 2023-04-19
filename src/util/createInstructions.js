@@ -11,6 +11,8 @@
  *
  * @return {Array} An array containing an object with the role of "user" and the content of the instructions.
  */
+import { getWeather } from './getWeather'; 
+import { getWeatherText } from './getWeatherText'; 
 import { getRandomPoemType, isRandomlyTrue } from './getRandomBoolean'; 
 import { DJ_OPTIONS } from './djOptions'; 
 import moment from 'moment';
@@ -39,8 +41,11 @@ if ('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window) {
 
 
 
-export const createInstructions = (title, artist, upcoming = [], firstName, options, isNew, addedInfo = false, lang = 'en-US') => {
+export const createInstructions = async (title, artist, upcoming = [], firstName, options, isNew, addedInfo = false, lang = 'en-US') => {
   const nextUpcoming = upcoming.slice(0, 2).map(({ trackName, artistName }) => `${dotless(trackName)} by ${dotless(artistName)}`).join(' and ');
+
+
+  const weather = await getWeather();
 
   const shouldSayBoombot = options & DJ_OPTIONS.BOOMBOT;
   const shouldSayUsername = addedInfo && (options & DJ_OPTIONS.USERNAME);
@@ -53,6 +58,7 @@ export const createInstructions = (title, artist, upcoming = [], firstName, opti
     time: isRandomlyTrue(shouldSayTime),
     next: isRandomlyTrue(shouldSayUpnext && !!nextUpcoming?.length),
     name: isRandomlyTrue(shouldSayUsername && firstName !== undefined && firstName !== 'undefined'),  
+    weather: isRandomlyTrue (!!weather)
   };
  
   //  log positive conditions
@@ -70,6 +76,7 @@ export const createInstructions = (title, artist, upcoming = [], firstName, opti
       ${when.time && `The introduction should be topical to the time of day which is ${moment().format('hh:mm a')}.`}
       ${when.next && `The introduction must menttion the upcoming tracks: ${nextUpcoming}.`}
       ${when.name && `The introduction must menttion a listener named ${firstName}.`}
+      ${when.weather && `If there is time the introduction should mention the weather ${getWeatherText(weather)}.`}
       
       The listeners locale setting is "${lang}"
       
