@@ -77,6 +77,7 @@ export const createInstructions = async (title, artist, upcoming = [], firstName
       ${when.next && `The introduction must menttion the upcoming tracks: ${nextUpcoming}.`}
       ${when.name && `The introduction must menttion a listener named ${firstName}.`}
       ${when.weather && `If there is time the introduction should mention the weather ${getWeatherText(weather)}.`}
+      ${isRandomlyTrue(true) && `add a bit of trivia about the song`}
       
       The listeners locale setting is "${lang}"
       
@@ -89,10 +90,9 @@ export const createInstructions = async (title, artist, upcoming = [], firstName
       Do not declare a variable.
       Do not return the interface.
 
-
       Your response is intended to be parsed as JSON.`;
 
-  const create = (content) => ([{ role: 'user', content }]);
+  const create = (content) => ([{ role: 'user', content }]);  
   return create(instructions);
 }
 

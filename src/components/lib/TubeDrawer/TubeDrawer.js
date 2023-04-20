@@ -456,7 +456,7 @@ const TubeDrawer = ({ small, menu, tube }) => {
 
       <Drawer anchor="bottom" open={!!tube.vocab}>
         <Box sx={{ p: 2, fontSize: '0.85rem', color: 'text.secondary'}}>
-         <b>Boombot DJ: </b> {tube.vocab}
+         <b>Boombot DJ: </b> {tube.vocab?.includes("\n") ? <pre>{tube.vocab}</pre> : <>{tube.vocab}</>}
         </Box> 
       </Drawer>
 
@@ -622,44 +622,118 @@ const TubeDrawer = ({ small, menu, tube }) => {
 TubeDrawer.defaultProps = {};
 export default TubeDrawer;
 
-const Embed = ({ trackName, artistName, onEnd, onStart, cadence, small, randomize, showVocab, src, ...props }) => { 
+// The Embed component renders a YouTube video player with some additional functionality, such as text-to-speech and a loading skeleton.
+const Embed = ({
+  trackName,
+  artistName,
+  onEnd,
+  onStart,
+  cadence,
+  small,
+  randomize,
+  showVocab,
+  src,
+  ...props
+}) => {
+  // useTubeWatch is a custom hook that provides state and actions for a YouTube video player
   const watch = useTubeWatch();
- 
+
+  // Send an "OPEN" message to the player whenever the trackName, artistName, or props change
   React.useEffect(() => {
     watch.send({
       type: 'OPEN',
       trackName,
       artistName,
       ...props
-    })
-    // eslint-disable-next-line 
+    });
   }, [trackName, artistName]);
 
-  const talk = (text) => { 
-    !!text && getRandomBoolean(cadence) && speakText(text, randomize, props.language, showVocab)
-  }
+  // talk is a function that speaks the given text with a random cadence, using the speakText helper function
+  const talk = (text) => {
+    // Check if text is truthy, and use a random cadence (based on the cadence prop) to determine whether to speak
+    if (!!text && getRandomBoolean(cadence)) {
+      speakText(text, randomize, props.language, showVocab);
+    }
+  };
 
+  // Calculate the player height and width based on the small prop and the window dimensions
+  const playerHeight = small ? window.innerWidth * 0.5625 : IFRAME_HEIGHT;
+  const playerWidth = small ? window.innerWidth - 32 : IFRAME_WIDTH;
 
-  const opts = {
-    height: small ? window.innerWidth * 0.5625 : IFRAME_HEIGHT,
-    width: small ? window.innerWidth - 32 : IFRAME_WIDTH,
+  // Set the player options, including autoplay and the calculated height and width
+  const playerOpts = {
+    height: playerHeight,
+    width: playerWidth,
     playerVars: {
-      // https://developers.google.com/youtube/player_parameters onReady
-      autoplay: 1, 
+      autoplay: 1,
     },
   };
+
+  // Extract the YouTube video ID from the src prop using a regular expression
   const regex = /v=(.{11})/.exec(src);
+
+  // If the video ID could not be parsed, render an error message
   if (!regex) {
     return <>Could not parse {src}</>;
   }
+
+  // If the player is not yet loaded (i.e. it hasn't received an "OPEN" message), render a loading skeleton
   if (!watch.state.matches('open.loaded')) {
-    return  <Skeleton variant="rectangular" {...opts} />
+    return <Skeleton variant="rectangular" {...playerOpts} />;
   }
 
-  // return <>{regex[1]}</>
-  
-  return <YouTube onPlay={() => talk(watch.intro)} videoId={regex[1]} opts={opts} onEnd={onEnd}  />
+  // Otherwise, render the YouTube player with the extracted video ID and the player options
+  return (
+    <YouTube
+      onPlay={() => talk(watch.intro)} // Call the talk function with the player's intro text when the video starts playing
+      videoId={regex[1]}
+      opts={playerOpts}
+      onEnd={onEnd} // Call the onEnd function when the video ends
+    />
+  );
 };
+
+
+
+
+// const Embed = ({ trackName, artistName, onEnd, onStart, cadence, small, randomize, showVocab, src, ...props }) => { 
+//   const watch = useTubeWatch();
+ 
+//   React.useEffect(() => {
+//     watch.send({
+//       type: 'OPEN',
+//       trackName,
+//       artistName,
+//       ...props
+//     })
+//     // eslint-disable-next-line 
+//   }, [trackName, artistName]);
+
+//   const talk = (text) => { 
+//     !!text && getRandomBoolean(cadence) && speakText(text, randomize, props.language, showVocab)
+//   }
+
+
+//   const opts = {
+//     height: small ? window.innerWidth * 0.5625 : IFRAME_HEIGHT,
+//     width: small ? window.innerWidth - 32 : IFRAME_WIDTH,
+//     playerVars: {
+//       // https://developers.google.com/youtube/player_parameters onReady
+//       autoplay: 1, 
+//     },
+//   };
+//   const regex = /v=(.{11})/.exec(src);
+//   if (!regex) {
+//     return <>Could not parse {src}</>;
+//   }
+//   if (!watch.state.matches('open.loaded')) {
+//     return  <Skeleton variant="rectangular" {...opts} />
+//   }
+
+//   // return <>{regex[1]}</>
+  
+//   return <YouTube onPlay={() => talk(watch.intro)} videoId={regex[1]} opts={opts} onEnd={onEnd}  />
+// };
  
 
  
